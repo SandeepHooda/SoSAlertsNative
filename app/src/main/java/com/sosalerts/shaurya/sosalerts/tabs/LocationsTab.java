@@ -1,9 +1,7 @@
-package com.sosalerts.shaurya.sosalerts;
+package com.sosalerts.shaurya.sosalerts.tabs;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +10,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import java.util.HashSet;
+import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.R;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
+
 import java.util.Set;
 
 /**

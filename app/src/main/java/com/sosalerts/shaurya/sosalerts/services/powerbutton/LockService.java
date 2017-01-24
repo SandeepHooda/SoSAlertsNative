@@ -1,4 +1,4 @@
-package com.sosalerts.shaurya.sosalerts;
+package com.sosalerts.shaurya.sosalerts.services.powerbutton;
 
 /**
  * Created by shaurya on 1/21/2017.

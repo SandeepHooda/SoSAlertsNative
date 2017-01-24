@@ -18,14 +18,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".LockService" >
+        <service android:name=".services.powerbutton.LockService" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </service>
         <!-- No filter for FetchAddressIntentService: only app can call this service -->
         <service
-            android:name=".FetchAddressIntentService"
+            android:name=".services.address.FetchAddressIntentService"
             android:exported="false"/>
     </application>
 

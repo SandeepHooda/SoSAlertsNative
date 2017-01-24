@@ -1,9 +1,11 @@
-package com.sosalerts.shaurya.sosalerts;
+package com.sosalerts.shaurya.sosalerts.db;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+
+import com.sosalerts.shaurya.sosalerts.R;
 
 import java.util.HashSet;
 import java.util.Set;

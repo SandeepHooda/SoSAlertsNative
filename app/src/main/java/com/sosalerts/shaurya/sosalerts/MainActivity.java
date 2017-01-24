@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -22,13 +22,16 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
+import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
+import com.sosalerts.shaurya.sosalerts.services.powerbutton.LockService;
+import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
 
 import android.Manifest;
 import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 
@@ -36,8 +39,9 @@ import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener , AddressResultReceiver.Receiver{
     private String currentAction = null;
+    public AddressResultReceiver addressResultReceiver;
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
@@ -51,7 +55,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
     private TextToSpeech ttobj;
 
-
+    @Override
+    protected  void onResume(){
+        super.onResume();
+        addressResultReceiver = new AddressResultReceiver(new Handler());
+        addressResultReceiver.setReceiver(this);
+    }
+    @Override
+    protected  void onDestroy(){
+        super.onPause();
+        addressResultReceiver.setReceiver(null);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
 
+        //addressResultReceiver = new AddressResultReceiver(new Handler());
+
         createTabs();
         Intent intent = getIntent();
         String intentAction = intent.getStringExtra("IntentAction");
@@ -74,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             oneTimeActivityStarted = true;
 
             checkPermissions();
-            registerListners();
+
            // Log.e("LOB", "Registered Address listner ");
            startService(new Intent(getApplicationContext(), LockService.class));//Power button service
         }
@@ -100,46 +116,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
-    private BroadcastReceiver locationUpdateListner = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.e("LOB", "Location update 444444444444 "+intent.getAction());
-            if (FetchAddressIntentService.RECEIVER.equalsIgnoreCase(intent.getAction())) {
-                String address = intent.getStringExtra(FetchAddressIntentService.RESULT_DATA_KEY);
-                String location = intent.getStringExtra(FetchAddressIntentService.LOCATION_DATA_EXTRA);
-                String country = intent.getStringExtra(FetchAddressIntentService.LOCATION_DATA_EXTRA_COUNTRY);
-                Log.e("LOB", "Result foiund Huray +++++++++++++" + address);
-                Log.e("LOB", "Result foiund cordinates +++++++++++++" + location);
-                SmsManager smsManager = SmsManager.getDefault();
-                String utteranceId=this.hashCode() + "";
 
-                if ("IN".equals(country)){
-                    Log.e("LOB", "India " );
-                    location = "https://maps.mapmyindia.com/@"+location;
-                }else {
-                    Log.e("LOB", "Non India " );
-                    location = "https://www.google.com/maps/place/@"+location+",16z";
-                }
-                String parentState = Storage.getFromDB(Storage.currentAction,context);
-                if("SaveLocation".equals(parentState)){
-                    String locationName = Storage.getFromDB(Storage.locationName,context );
-                    Storage.storeinDBStringSet(Storage.savedLocations,locationName+"_"+location,context);
-                    Log.e("LOB", "::::Saved locations :: "+Storage.getFromDBDBStringSet(Storage.savedLocations,context) );
-                }
-
-                //ttobj.speak("Hello", TextToSpeech.QUEUE_FLUSH, null,utteranceId);
-                //smsManager.sendTextMessage("540", null, "I need help. I am at "+address + " Exact location: " +location, null, null);
-        }
-        }
-    };
-    private void registerListners(){
-        Log.e("LOB", "Address  listeners started  ");
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                locationUpdateListner, new IntentFilter(FetchAddressIntentService.RECEIVER));
-    }
     private void startAddressIntentService() {
         Intent intent = new Intent(this, FetchAddressIntentService.class);
         intent.putExtra(FetchAddressIntentService.LOCATION_DATA_EXTRA, mLastLocation);
+        intent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER, addressResultReceiver);
+
         startService(intent);
     }
 
@@ -275,6 +257,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
 
+
+    }
+
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        Log.e("LOB", "Main activity got the result "+resultData.getString(FetchAddressIntentService.RESULT_DATA_KEY));
 
     }
 }

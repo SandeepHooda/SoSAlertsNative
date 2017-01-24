@@ -1,4 +1,4 @@
-package com.sosalerts.shaurya.sosalerts;
+package com.sosalerts.shaurya.sosalerts.services.address;
 
 import android.app.IntentService;
 import android.app.Service;
@@ -40,6 +40,8 @@ public class FetchAddressIntentService extends IntentService{
                 ".LOCATION_DATA_EXTRA";
     public static final String LOCATION_DATA_EXTRA_COUNTRY = PACKAGE_NAME +
             ".LOCATION_DATA_EXTRA_COUNTRY";
+    public static final String ADDRESS_RESULT_RECEIVER = PACKAGE_NAME +
+            ".addressResultReceiver";
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -52,16 +54,16 @@ public class FetchAddressIntentService extends IntentService{
     public FetchAddressIntentService() {
         super("Sandeep");
     }
-    private void deliverResultToReceiver(int resultCode, String message, String cordinates, String countryCode) {
-        Intent localIntent =     new Intent(RECEIVER)
+    private void deliverResultToReceiver(Intent intent,int resultCode, String message, String cordinates, String countryCode) {
 
-                        .putExtra(RESULT_DATA_KEY, message).putExtra(LOCATION_DATA_EXTRA,cordinates).putExtra(LOCATION_DATA_EXTRA_COUNTRY,countryCode);
-        // Broadcasts the Intent to receivers in this app.
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+        ResultReceiver rec = intent.getParcelableExtra(ADDRESS_RESULT_RECEIVER);
 
-
-
-       Log.e("LOB", "Result Broadcasted to listener" );
+        Bundle b= new Bundle();
+        b.putString(LOCATION_DATA_EXTRA_COUNTRY,countryCode);
+        b.putString(LOCATION_DATA_EXTRA,cordinates);
+        b.putString(RESULT_DATA_KEY,message);
+        rec.send(0, b);
+       Log.e("LOB", "Result sent resultReceiver" );
         //stopSelf();
     }
     @Override
@@ -105,7 +107,7 @@ public class FetchAddressIntentService extends IntentService{
                 //errorMessage = getString(R.string.no_address_found);
                 Log.e("TAG", "no_address_found");
             }
-            deliverResultToReceiver(FAILURE_RESULT, errorMessage,"", "");
+            deliverResultToReceiver(intent,FAILURE_RESULT, errorMessage,"", "");
         } else {
             Address address = addresses.get(0);
             Log.i("TAG", "All address "+addresses.get(0).getCountryCode());
@@ -118,7 +120,7 @@ public class FetchAddressIntentService extends IntentService{
                 Log.i("TAG", address.getAddressLine(i));
             }
             Log.i("TAG", "getString(R.string.address_found)");
-            deliverResultToReceiver(SUCCESS_RESULT,
+            deliverResultToReceiver(intent,SUCCESS_RESULT,
                     TextUtils.join(System.getProperty("line.separator"),
                             addressFragments),""+location.getLatitude()+","+
                     location.getLongitude(), address.getCountryCode());

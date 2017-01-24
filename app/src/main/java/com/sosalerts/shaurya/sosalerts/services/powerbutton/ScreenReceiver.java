@@ -1,4 +1,4 @@
-package com.sosalerts.shaurya.sosalerts;
+package com.sosalerts.shaurya.sosalerts.services.powerbutton;
 
 /**
  * Created by shaurya on 1/21/2017.
@@ -16,6 +16,7 @@ import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.sosalerts.shaurya.sosalerts.MainActivity;
 
 import java.util.Date;
 
@@ -24,7 +25,7 @@ public class ScreenReceiver extends BroadcastReceiver {
 
     private Date powerButtonLastPressed = new Date();
     private short powerButtonPressCount = 0;
-    private short triggerAlertAfterCount = 4; //trigget SOS alert after three times power button
+    private short triggerAlertAfterCount =2; //trigget SOS alert after three times power button
 
 
     @Override
