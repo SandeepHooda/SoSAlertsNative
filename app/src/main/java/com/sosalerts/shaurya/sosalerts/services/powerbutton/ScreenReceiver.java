@@ -26,6 +26,7 @@ public class ScreenReceiver extends BroadcastReceiver {
     private Date powerButtonLastPressed = new Date();
     private short powerButtonPressCount = 0;
     private short triggerAlertAfterCount =2; //trigget SOS alert after three times power button
+    public static final String SOSAlert = "SOSAlert";
 
 
     @Override
@@ -43,7 +44,7 @@ public class ScreenReceiver extends BroadcastReceiver {
 
                     //Danger
                     Intent mainActivityIntent = new Intent(context, MainActivity.class);
-                    mainActivityIntent.putExtra("IntentAction", "SOSAlert");
+                    mainActivityIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
                     mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     Log.e("LOB", "Staring main activity with danger flag");
                     //context.startService(new Intent(context, FetchAddressIntentService.class));//Fetch address service

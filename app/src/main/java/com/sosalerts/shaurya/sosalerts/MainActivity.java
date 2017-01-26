@@ -1,8 +1,10 @@
 package com.sosalerts.shaurya.sosalerts;
 
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.content.IntentFilter;
@@ -12,6 +14,7 @@ import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
@@ -26,6 +29,10 @@ import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.LockService;
+import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
+import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
+import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
+import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
 
 import android.Manifest;
@@ -34,13 +41,13 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.Toast;
 
-
-
+import java.util.Locale;
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener , AddressResultReceiver.Receiver{
-    private String currentAction = null;
+
     public AddressResultReceiver addressResultReceiver;
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -48,12 +55,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final int REQUEST_LOCATION = 2;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     private static boolean oneTimeActivityStarted = false;
-
+    private String currentLocationName = "";
+    private String currentLocation = null;
     private Location mLastLocation;
+    public static final String orignationActivityName = "orignationActivityName";
+    private String intentOriginator;
+    private String smsSenderPhoneNo= null;
 
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
-    private TextToSpeech ttobj;
+    public static TextToSpeech myTTS;
+
+    public static boolean phoneFound = false;
 
     @Override
     protected  void onResume(){
@@ -65,27 +78,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected  void onDestroy(){
         super.onPause();
         addressResultReceiver.setReceiver(null);
+         if (myTTS != null) {
+            myTTS.stop();
+            myTTS.shutdown();
+        }
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
-
-        ttobj=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        myTTS = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
+                Log.e("LOB", "Text to speach  Status $$$$$$$$$$$$$$$$$ "+status);
             }
         });
-
         //addressResultReceiver = new AddressResultReceiver(new Handler());
-
-        createTabs();
         Intent intent = getIntent();
-        String intentAction = intent.getStringExtra("IntentAction");
-        Log.e("LOB", "Main activity Intent action  "+intentAction);
+        intentOriginator = intent.getStringExtra(orignationActivityName);
+        createTabs(intentOriginator);
+
+
+        Log.e("LOB", "Main activity Intent action  "+intentOriginator);
         if(!oneTimeActivityStarted){
             oneTimeActivityStarted = true;
 
@@ -94,34 +109,45 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
            // Log.e("LOB", "Registered Address listner ");
            startService(new Intent(getApplicationContext(), LockService.class));//Power button service
         }
-        currentAction = intentAction;
-        Storage.storeinDB(Storage.currentAction, currentAction,this);
-
-
-        if("SOSAlert".equals(intentAction) || "SaveLocation".equals(intentAction)){
-            if("SaveLocation".equals(intentAction)){
-                Storage.storeinDB(Storage.locationName, intent.getStringExtra(Storage.locationName),this);
-            }
-
-            Log.e("LOB", "Flag Danger ######### ");
-            // First we need to check availability of play services
-            if (checkPlayServices()) {
-                Log.e("LOB", "buildGoogleApiClient");
-                // Building the GoogleApi client
-                buildGoogleApiClient();
-                getUserLocation();
-            }
+        if(ScreenReceiver.SOSAlert.equals(intentOriginator) || IncomingSms.whereAreYou.equals(intentOriginator) ){
+            smsSenderPhoneNo = intent.getStringExtra(IncomingSms.phoneNo);
+           userLocationFacade(null);
         }
-
+        if(IncomingSms.findMyPhone.equals(intentOriginator)){
+            Intent speakIntent = new Intent(this, ReadOut.class);
+            startService(speakIntent);
+        }
+        /*if(IncomingSms.whereAreYou.equals(intentAction)){
+            Intent speakIntent = new Intent(this, ReadOut.class);
+            speakIntent.putExtra(MainActivity.orignationActivityName, IncomingSms.whereAreYou);
+            speakIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
+            startService(speakIntent);
+        }*/
 
     }
 
 
+   public void userLocationFacade(String nameFromSaveLocationTab){
+       if(!IncomingSms.whereAreYou.equals(intentOriginator)){
+           smsSenderPhoneNo = null;
+       }
+       this.currentLocationName = nameFromSaveLocationTab;
+       // First we need to check availability of play services
+       if (checkPlayServices()) {
+           Log.e("LOB", "buildGoogleApiClient");
+           // Building the GoogleApi client
+           buildGoogleApiClient();
+           getUserLocation();
+       }
+   }
     private void startAddressIntentService() {
         Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(FetchAddressIntentService.LOCATION_DATA_EXTRA, mLastLocation);
+        intent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES, mLastLocation);
         intent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER, addressResultReceiver);
-
+        intent.putExtra(orignationActivityName, intentOriginator);
+        if(IncomingSms.whereAreYou.equals(intentOriginator)){
+            intent.putExtra(IncomingSms.phoneNo, smsSenderPhoneNo);
+        }
         startService(intent);
     }
 
@@ -133,6 +159,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)      != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_SMS}, REQUEST_LOCATION);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)      != PackageManager.PERMISSION_GRANTED) {
+            Log.e("MAIN" ,"donot have SMS read permission");
+            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.READ_SMS}, REQUEST_LOCATION);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.VIBRATE)      != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.VIBRATE}, REQUEST_LOCATION);
+        }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)      != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
@@ -189,8 +226,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             double latitude = mLastLocation.getLatitude();
             double longitude = mLastLocation.getLongitude();
             Log.e("LOB", "location ::::: "+latitude+ " --- "+longitude);
-            startAddressIntentService();
-        } else {
+            String location = latitude+","+longitude;
+            if (this.currentLocationName != null){
+                Storage.storeinDBStringSet(Storage.savedLocations, this.currentLocationName +"_"+"https://www.google.com/maps/place/@"+location+",16z",this);
+            }else {
+                startAddressIntentService();
+            }
 
         }
     }
@@ -225,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
 
-    private void createTabs(){
+    private void createTabs(String tabName){
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -236,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+
         final PagerAdapter adapter = new PagerAdapter
                 (getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
@@ -256,13 +298,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             }
         });
-
+        Log.e("LOB", "Tab to open "+tabName);
+        if (LocationsTab.actionName.equals(tabName)){
+            viewPager.setCurrentItem(1);
+        }
 
     }
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
-        Log.e("LOB", "Main activity got the result "+resultData.getString(FetchAddressIntentService.RESULT_DATA_KEY));
+        Log.e("LOB", "Main activity got the result "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
 
     }
 }

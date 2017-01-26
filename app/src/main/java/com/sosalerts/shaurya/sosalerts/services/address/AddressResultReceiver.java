@@ -6,7 +6,9 @@ import android.os.ResultReceiver;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 
 /**
  * Created by shaurya on 1/24/2017.
@@ -31,32 +33,35 @@ public class AddressResultReceiver extends ResultReceiver {
 
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
-        Log.e("LOB", "Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr cool ="+resultData.getString(FetchAddressIntentService.LOCATION_DATA_EXTRA_COUNTRY));
-        Log.e("LOB", "Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr cool ="+resultData.getString(FetchAddressIntentService.LOCATION_DATA_EXTRA));
+        String origination = resultData.getString(MainActivity.orignationActivityName);
+        Log.e("LOB", "origination "+origination+" sms ="+resultData.getString(IncomingSms.phoneNo) );
+
         SmsManager smsManager = SmsManager.getDefault();
         String utteranceId=this.hashCode() + "";
-
-        /*if ("IN".equals(country)){
+        String cordinates = resultData.getString(FetchAddressIntentService.LOCATION_DATA_CORDINATES);
+        String country  = resultData.getString(FetchAddressIntentService.LOCATION_DATA_EXTRA_COUNTRY);
+        String address = resultData.getString(FetchAddressIntentService.Location_ADDRESS);
+        if ("IN".equals(country)){
             Log.e("LOB", "India " );
-            location = "https://maps.mapmyindia.com/@"+location;
+            cordinates = "https://maps.mapmyindia.com/@"+cordinates;
         }else {
             Log.e("LOB", "Non India " );
-            location = "https://www.google.com/maps/place/@"+location+",16z";
+            cordinates = "https://www.google.com/maps/place/@"+cordinates+",16z";
         }
-        String parentState = Storage.getFromDB(Storage.currentAction,context);
-        if("SaveLocation".equals(parentState)){
-            String locationName = Storage.getFromDB(Storage.locationName,context );
-            Storage.storeinDBStringSet(Storage.savedLocations,locationName+"_"+location,context);
-            Log.e("LOB", "::::Saved locations :: "+Storage.getFromDBDBStringSet(Storage.savedLocations,context) );
-        }*/
+
 
         //ttobj.speak("Hello", TextToSpeech.QUEUE_FLUSH, null,utteranceId);
         //smsManager.sendTextMessage("540", null, "I need help. I am at "+address + " Exact location: " +location, null, null);
 
         // b.putString(LOCATION_DATA_EXTRA,cordinates);
         //b.putString(RESULT_DATA_KEY,message);
+        if (IncomingSms.whereAreYou.equals(origination)){
+            String phoneNo = resultData.getString(IncomingSms.phoneNo);
+            Log.e("LOB", "Phone no "+phoneNo);
+            smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
+        }
         if (mReceiver != null) { //This can send data to activity
-            Log.e("LOB", "Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.RESULT_DATA_KEY));
+            Log.e("LOB", "Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
 
             mReceiver.onReceiveResult(resultCode, resultData);
         }
