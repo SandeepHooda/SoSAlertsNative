@@ -13,10 +13,11 @@ import com.sosalerts.shaurya.sosalerts.R;
  */
 
 public class TripsTab extends Fragment {
+    private final String fileName = this.getClass().getName();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.e("LOB", " now inside package " );
+        Log.e(fileName, " now inside package " );
         return inflater.inflate(R.layout.trips_tab, container, false);
     }
 }

@@ -28,7 +28,7 @@ public class IncomingSms extends BroadcastReceiver {
     public static final String phoneNo = "";
     // Get the object of SmsManager
     final SmsManager sms = SmsManager.getDefault();
-
+    private final String fileName = this.getClass().getName();
     private boolean phoneFound = false;
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -85,7 +85,7 @@ public class IncomingSms extends BroadcastReceiver {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("SmsReceiver", "Exception smsReceiver ::: " +e);
+            Log.e(fileName, "Exception smsReceiver ::: " +e);
 
         }
     }

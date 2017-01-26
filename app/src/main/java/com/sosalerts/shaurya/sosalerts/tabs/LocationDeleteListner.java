@@ -18,7 +18,7 @@ import java.util.Date;
  * Created by shaurya on 1/25/2017.
  */
 
-public class ListOnItemClickListener  implements   AdapterView.OnItemLongClickListener {
+public class LocationDeleteListner implements   AdapterView.OnItemLongClickListener {
     public ListView listView ;
 
 

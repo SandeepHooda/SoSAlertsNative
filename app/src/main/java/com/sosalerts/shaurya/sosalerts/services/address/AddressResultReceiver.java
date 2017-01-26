@@ -8,13 +8,17 @@ import android.util.Log;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
+
+import java.util.Iterator;
 
 /**
  * Created by shaurya on 1/24/2017.
  */
 
 public class AddressResultReceiver extends ResultReceiver {
+    private final String fileName = "AddressResultReceiver: ";
 
     private Receiver mReceiver;
 
@@ -34,7 +38,7 @@ public class AddressResultReceiver extends ResultReceiver {
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
         String origination = resultData.getString(MainActivity.orignationActivityName);
-        Log.e("LOB", "origination "+origination+" sms ="+resultData.getString(IncomingSms.phoneNo) );
+        Log.e(fileName, "origination "+origination+" sms ="+resultData.getString(IncomingSms.phoneNo) );
 
         SmsManager smsManager = SmsManager.getDefault();
         String utteranceId=this.hashCode() + "";
@@ -42,10 +46,10 @@ public class AddressResultReceiver extends ResultReceiver {
         String country  = resultData.getString(FetchAddressIntentService.LOCATION_DATA_EXTRA_COUNTRY);
         String address = resultData.getString(FetchAddressIntentService.Location_ADDRESS);
         if ("IN".equals(country)){
-            Log.e("LOB", "India " );
+            Log.e(fileName, "India " );
             cordinates = "https://maps.mapmyindia.com/@"+cordinates;
         }else {
-            Log.e("LOB", "Non India " );
+            Log.e(fileName, "Non India " );
             cordinates = "https://www.google.com/maps/place/@"+cordinates+",16z";
         }
 
@@ -57,11 +61,36 @@ public class AddressResultReceiver extends ResultReceiver {
         //b.putString(RESULT_DATA_KEY,message);
         if (IncomingSms.whereAreYou.equals(origination)){
             String phoneNo = resultData.getString(IncomingSms.phoneNo);
-            Log.e("LOB", "Phone no "+phoneNo);
-            smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
+            Log.e(fileName, "Phone no "+phoneNo);
+            if(MainActivity.myemergencyContacts.contains(Storage.getOnlyNumbers(phoneNo))){
+
+                if(!MainActivity.testMode){
+                    smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
+                }else {
+                    Log.e(fileName, "Test mode: I know you "+"I am at "+address + " Exact location: " +cordinates);
+                }
+
+            }else {
+                Log.e(fileName, "I don't know you "+phoneNo);
+            }
+
+        }else if(ScreenReceiver.SOSAlert.equals(origination)){
+            for (String contact:MainActivity.myemergencyContacts ){
+                if(!MainActivity.testMode){
+                    smsManager.sendTextMessage(contact, null,  "I am in danger. I am at "+address + " Exact location: " +cordinates, null, null);
+
+                }else {
+                    Log.e(fileName, "Test mode: I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         if (mReceiver != null) { //This can send data to activity
-            Log.e("LOB", "Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
+            Log.e(fileName, origination+" Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
 
             mReceiver.onReceiveResult(resultCode, resultData);
         }

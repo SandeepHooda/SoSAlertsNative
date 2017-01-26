@@ -31,7 +31,7 @@ import java.util.Locale;
 
 public class FetchAddressIntentService extends IntentService{
 
-
+    private final String fileName = this.getClass().getName();
         public static final int SUCCESS_RESULT = 0;
         public static final int FAILURE_RESULT = 1;
         public static final String PACKAGE_NAME =
@@ -83,7 +83,7 @@ public class FetchAddressIntentService extends IntentService{
         intent.getStringExtra(MainActivity.orignationActivityName);
         String originator = intent.getStringExtra(MainActivity.orignationActivityName);
         String phonmeNo = intent.getStringExtra(IncomingSms.phoneNo);
-        Log.e("LOB", "Address service" + cordinates.getLatitude() +" --- "+cordinates.getLongitude() +" ---"+ originator +" --"+ phonmeNo);
+        Log.e(fileName, "Address service" + cordinates.getLatitude() +" --- "+cordinates.getLongitude() +" ---"+ originator +" --"+ phonmeNo);
 
 
         List<Address> addresses = null;
@@ -97,11 +97,11 @@ public class FetchAddressIntentService extends IntentService{
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
             //errorMessage = getString(R.string.service_not_available);
-            Log.e("TAG", "service_not_available", ioException);
+            Log.e(fileName, "service_not_available", ioException);
         } catch (IllegalArgumentException illegalArgumentException) {
             // Catch invalid latitude or longitude values.
             //errorMessage = getString(R.string.);
-            Log.e("TAG", "invalid_lat_long_used" + ". " +
+            Log.e(fileName, "invalid_lat_long_used" + ". " +
                     "Latitude = " + cordinates.getLatitude() +
                     ", Longitude = " +
                     cordinates.getLongitude(), illegalArgumentException);
@@ -111,9 +111,9 @@ public class FetchAddressIntentService extends IntentService{
         if (addresses == null || addresses.size()  == 0) {
             if (errorMessage.isEmpty()) {
                 //errorMessage = getString(R.string.no_address_found);
-                Log.e("TAG", "no_address_found");
+                Log.e(fileName, "no_address_found");
             }
-            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "","","");
+            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "",originator,phonmeNo);
         } else {
             Address address = addresses.get(0);
 

@@ -22,7 +22,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
 
-import java.util.Locale;
+
 
 
 public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListener*/{
@@ -31,6 +31,7 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
     boolean paused = false;
     String leftToRead = null;
     String res = null;
+    private final String fileName = "ReadOut : ";
     public ReadOut() {
         super("SpeechService");
     }
@@ -61,7 +62,7 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
         int i=0;
         while(!MainActivity.phoneFound){
             i++;
-            Log.e("LOB", " MainActivity.phoneFound  "+MainActivity.phoneFound );
+            Log.e(fileName, " MainActivity.phoneFound  "+MainActivity.phoneFound );
             sayString("I am here");
             try {
                 Thread.sleep(2000);

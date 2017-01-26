@@ -3,10 +3,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.sosalerts.shaurya.sosalerts.tabs.HomeTab;
-import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
-import com.sosalerts.shaurya.sosalerts.tabs.TripsTab;
-
 /**
  * Created by shaurya on 1/23/2017.
  */
@@ -24,8 +20,8 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
         switch (position) {
             case 0:
-                HomeTab homeTab = new HomeTab();
-                return homeTab;
+                ContactsTab contactsTab = new ContactsTab();
+                return contactsTab;
             case 1:
                 LocationsTab locationsTab = new LocationsTab();
                 return locationsTab;

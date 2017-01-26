@@ -9,8 +9,10 @@ import android.content.Intent;
 
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -32,6 +34,7 @@ import com.sosalerts.shaurya.sosalerts.services.powerbutton.LockService;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
+import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
 
@@ -41,7 +44,10 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -67,7 +73,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public static TextToSpeech myTTS;
 
     public static boolean phoneFound = false;
-
+    public static Map<String,String> allContacts = new HashMap<String,String>();
+    public static Set<String> myemergencyContacts = new HashSet<>();
+    public static final boolean testMode = true;
+    private final String fileName = "MainActivity : ";
     @Override
     protected  void onResume(){
         super.onResume();
@@ -91,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         myTTS = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                Log.e("LOB", "Text to speach  Status $$$$$$$$$$$$$$$$$ "+status);
+                Log.e(fileName, "Text to speach  Status $$$$$$$$$$$$$$$$$ "+status);
             }
         });
         //addressResultReceiver = new AddressResultReceiver(new Handler());
@@ -100,13 +109,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         createTabs(intentOriginator);
 
 
-        Log.e("LOB", "Main activity Intent action  "+intentOriginator);
+        Log.e(fileName, "Main activity Intent action  "+intentOriginator);
         if(!oneTimeActivityStarted){
             oneTimeActivityStarted = true;
 
             checkPermissions();
+            readContacts();
 
-           // Log.e("LOB", "Registered Address listner ");
+           // Log.e(fileName, "Registered Address listner ");
            startService(new Intent(getApplicationContext(), LockService.class));//Power button service
         }
         if(ScreenReceiver.SOSAlert.equals(intentOriginator) || IncomingSms.whereAreYou.equals(intentOriginator) ){
@@ -134,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
        this.currentLocationName = nameFromSaveLocationTab;
        // First we need to check availability of play services
        if (checkPlayServices()) {
-           Log.e("LOB", "buildGoogleApiClient");
+           Log.e(fileName, "buildGoogleApiClient");
            // Building the GoogleApi client
            buildGoogleApiClient();
            getUserLocation();
@@ -164,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_SMS}, REQUEST_LOCATION);
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)      != PackageManager.PERMISSION_GRANTED) {
-            Log.e("MAIN" ,"donot have SMS read permission");
+            Log.e(fileName ,"donot have SMS read permission");
             ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.READ_SMS}, REQUEST_LOCATION);
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.VIBRATE)      != PackageManager.PERMISSION_GRANTED) {
@@ -177,6 +187,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)      != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)      != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_LOCATION);
         }
 
         if (ActivityCompat.checkSelfPermission(MainActivity.this,  Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -207,13 +220,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mGoogleApiClient.connect();
     }
     private void getUserLocation(){
-        Log.e("LOB", " getting location ");
+        Log.e(fileName, " getting location ");
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
     }
     private void displayLocation() {
-        Log.e("LOB", " display location ");
+        Log.e(fileName, " display location ");
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
@@ -221,11 +234,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         mLastLocation = LocationServices.FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
-        Log.e("LOB", " mLastLocation "+mLastLocation);
+        Log.e(fileName, " mLastLocation "+mLastLocation);
         if (mLastLocation != null) {
             double latitude = mLastLocation.getLatitude();
             double longitude = mLastLocation.getLongitude();
-            Log.e("LOB", "location ::::: "+latitude+ " --- "+longitude);
+            Log.e(fileName, "location ::::: "+latitude+ " --- "+longitude);
             String location = latitude+","+longitude;
             if (this.currentLocationName != null){
                 Storage.storeinDBStringSet(Storage.savedLocations, this.currentLocationName +"_"+"https://www.google.com/maps/place/@"+location+",16z",this);
@@ -271,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setSupportActionBar(toolbar);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("Home"));
+        tabLayout.addTab(tabLayout.newTab().setText("Contacts"));
         tabLayout.addTab(tabLayout.newTab().setText("Locations"));
         tabLayout.addTab(tabLayout.newTab().setText("Trip"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
@@ -298,16 +311,41 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             }
         });
-        Log.e("LOB", "Tab to open "+tabName);
+        Log.e(fileName, "Tab to open "+tabName);
         if (LocationsTab.actionName.equals(tabName)){
             viewPager.setCurrentItem(1);
+        }
+        if (ContactsTab.actionName.equals(tabName)){
+            viewPager.setCurrentItem(0);
         }
 
     }
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
-        Log.e("LOB", "Main activity got the result "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
+        Log.e(fileName, "Main activity got the result "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
+
+    }
+    private void readContacts(){
+        Cursor cursor = getContentResolver().query(   ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null,null, null);
+
+        //now we have cusror with contacts and get diffrent value from cusror.
+
+        while (cursor.moveToNext()) {
+            String name =cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+
+            String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            if(null != phoneNumber){
+                phoneNumber = phoneNumber.replaceAll("[^\\d]", "").trim();
+                if (phoneNumber.length() > 10){
+                    int extra = phoneNumber.length() -10;
+                    phoneNumber = phoneNumber.substring(extra);
+                }
+                //Log.e(fileName, "name :"+name+" phoneNumber "+phoneNumber);
+                allContacts.put(phoneNumber,name);
+            }
+
+        }
 
     }
 }
