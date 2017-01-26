@@ -26,7 +26,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
                 LocationsTab locationsTab = new LocationsTab();
                 return locationsTab;
             case 2:
-                TripsTab triptsTab = new TripsTab();
+                SettingsTab triptsTab = new SettingsTab();
                 return triptsTab;
 
 

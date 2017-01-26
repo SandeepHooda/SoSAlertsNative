@@ -35,7 +35,7 @@ public class LocationsTab extends Fragment {
     View view = null;
     ListView listView ;
     public static String actionName = "LocationsTab";
-    private final String fileName = this.getClass().getName();
+    private final String fileName = this.getClass().getSimpleName();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
          view = inflater.inflate(R.layout.locations_tab,   container, false);

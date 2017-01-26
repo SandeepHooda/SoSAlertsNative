@@ -31,7 +31,7 @@ import java.util.Locale;
 
 public class FetchAddressIntentService extends IntentService{
 
-    private final String fileName = this.getClass().getName();
+    private final String fileName = this.getClass().getSimpleName();
         public static final int SUCCESS_RESULT = 0;
         public static final int FAILURE_RESULT = 1;
         public static final String PACKAGE_NAME =

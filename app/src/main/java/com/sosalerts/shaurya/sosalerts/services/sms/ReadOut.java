@@ -55,21 +55,30 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
 
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        String textToSpeak = intent.getStringExtra(MainActivity.textToSpeak);
+        String orignator = intent.getStringExtra(MainActivity.orignationActivityName);
+        if(null == textToSpeak){
+            textToSpeak = "Hello";
+        }
         MainActivity.phoneFound = false;
-        Intent dialogIntent = new Intent(this, MyDialog.class);
-        dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(dialogIntent);// to get user cordinates
-        int i=0;
-        while(!MainActivity.phoneFound){
-            i++;
-            Log.e(fileName, " MainActivity.phoneFound  "+MainActivity.phoneFound );
-            sayString("I am here");
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+
+        sayString(textToSpeak);
+        if(IncomingSms.findMyPhone.equals(orignator)){
+            Intent dialogIntent = new Intent(this, MyDialog.class);
+            dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(dialogIntent);
+            while(!MainActivity.phoneFound){
+
+                Log.e(fileName, " MainActivity.phoneFound  "+MainActivity.phoneFound );
+                sayString(textToSpeak);
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
+
 
     }
     public void sayString(String string) {

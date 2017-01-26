@@ -28,7 +28,7 @@ public class IncomingSms extends BroadcastReceiver {
     public static final String phoneNo = "";
     // Get the object of SmsManager
     final SmsManager sms = SmsManager.getDefault();
-    private final String fileName = this.getClass().getName();
+    private final String fileName = this.getClass().getSimpleName();
     private boolean phoneFound = false;
     @Override
     public void onReceive(Context context, Intent intent) {

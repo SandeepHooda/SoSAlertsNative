@@ -27,7 +27,7 @@ public class ScreenReceiver extends BroadcastReceiver {
     private short powerButtonPressCount = 0;
     private short triggerAlertAfterCount =5; //trigget SOS alert after three times power button
     public static final String SOSAlert = "SOSAlert";
-    private final String fileName = this.getClass().getName();
+    private final String fileName = this.getClass().getSimpleName();
 
     @Override
     public void onReceive(final Context context, final Intent intent) {

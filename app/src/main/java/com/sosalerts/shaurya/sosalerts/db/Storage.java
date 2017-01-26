@@ -22,11 +22,13 @@ public class Storage {
     public static final String savedLocations = "SavedLocations";
     public static final String currentAction = "currentAction";
     public static final String savedContacts = "savedContacts";
+    public static final String settingsLocationAutoUpdates = "settingsLocationAutoUpdates";
     private static final String dbName = "activity.getStringR.string.saved_location_db";
 
     public static void storeinDB(String itemName, String itemValue, FragmentActivity activity){
-        SharedPreferences sharedPref = activity.getSharedPreferences(activity.getString(R.string.saved_location_db),activity.MODE_PRIVATE);
+        SharedPreferences sharedPref = activity.getSharedPreferences(dbName+itemName,activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
+        editor.clear();
         editor.putString(itemName,itemValue);
         editor.commit();
     }

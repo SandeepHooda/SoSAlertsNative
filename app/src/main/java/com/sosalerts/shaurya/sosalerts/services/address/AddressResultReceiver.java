@@ -1,8 +1,11 @@
 package com.sosalerts.shaurya.sosalerts.services.address;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
+import android.os.Vibrator;
 import android.telephony.SmsManager;
 import android.util.Log;
 
@@ -10,6 +13,8 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
+import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
+import com.sosalerts.shaurya.sosalerts.services.util.PhoneVibrate;
 
 import java.util.Iterator;
 
@@ -69,6 +74,7 @@ public class AddressResultReceiver extends ResultReceiver {
                 }else {
                     Log.e(fileName, "Test mode: I know you "+"I am at "+address + " Exact location: " +cordinates);
                 }
+
 
             }else {
                 Log.e(fileName, "I don't know you "+phoneNo);

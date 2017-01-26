@@ -1,17 +1,20 @@
 package com.sosalerts.shaurya.sosalerts;
 
 
-import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
+
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
+
 import android.content.Intent;
 
-import android.content.IntentFilter;
+
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.os.Vibrator;
 import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
 import android.support.design.widget.TabLayout;
@@ -30,10 +33,12 @@ import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
+import com.sosalerts.shaurya.sosalerts.services.alarm.AlarmReceiver;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.LockService;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
+import com.sosalerts.shaurya.sosalerts.services.util.PhoneVibrate;
 import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
@@ -54,6 +59,8 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener , AddressResultReceiver.Receiver{
 
+
+
     public AddressResultReceiver addressResultReceiver;
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -71,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
     public static TextToSpeech myTTS;
+    public static final String textToSpeak = "textToSpeak";
 
     public static boolean phoneFound = false;
     public static Map<String,String> allContacts = new HashMap<String,String>();
@@ -125,6 +133,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         if(IncomingSms.findMyPhone.equals(intentOriginator)){
             Intent speakIntent = new Intent(this, ReadOut.class);
+            speakIntent.putExtra(textToSpeak,"Hello I am here");
+            speakIntent.putExtra(orignationActivityName,intentOriginator);
             startService(speakIntent);
         }
         /*if(IncomingSms.whereAreYou.equals(intentAction)){
@@ -195,6 +205,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if (ActivityCompat.checkSelfPermission(MainActivity.this,  Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.CALL_PHONE}, REQUEST_LOCATION);
         }
+        if (ActivityCompat.checkSelfPermission(MainActivity.this,  Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_BOOT_COMPLETED}, REQUEST_LOCATION);
+        }else{
+            Log.e(fileName ,"Has boot permission");
+        }
+
 
     }
 
@@ -286,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Contacts"));
         tabLayout.addTab(tabLayout.newTab().setText("Locations"));
-        tabLayout.addTab(tabLayout.newTab().setText("Trip"));
+        tabLayout.addTab(tabLayout.newTab().setText("Settings"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
@@ -323,6 +339,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
+
+        Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(500);
         Log.e(fileName, "Main activity got the result "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
 
     }
