@@ -17,6 +17,7 @@ import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
 
 import java.util.Date;
 
@@ -25,7 +26,7 @@ public class ScreenReceiver extends BroadcastReceiver {
 
     private Date powerButtonLastPressed = new Date();
     private short powerButtonPressCount = 0;
-    private short triggerAlertAfterCount =5; //trigget SOS alert after three times power button
+    private int triggerAlertAfterCount =5; //trigget SOS alert after three times power button
     public static final String SOSAlert = "SOSAlert";
     private final String fileName = this.getClass().getSimpleName();
 
@@ -34,6 +35,11 @@ public class ScreenReceiver extends BroadcastReceiver {
 
         if (Intent.ACTION_SCREEN_ON.equals(intent.getAction()) || Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
 
+            try{
+                triggerAlertAfterCount = Integer.parseInt(Storage.getFromDB(Storage.settingsPowerButtonCount,context));
+            }catch (Exception e){
+                triggerAlertAfterCount = 5;
+            }
 
             powerButtonPressCount++;
             Log.e(fileName, "power button pressed " + powerButtonPressCount);

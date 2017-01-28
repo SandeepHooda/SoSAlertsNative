@@ -23,7 +23,12 @@ public class Storage {
     public static final String currentAction = "currentAction";
     public static final String savedContacts = "savedContacts";
     public static final String settingsLocationAutoUpdates = "settingsLocationAutoUpdates";
+    public static final String settingsreplyToWhereAreYou = "settingsreplyToWhereAreYou";
+    public static final String settingsSafeZoneBoundry = "settingsSafeZoneBoundry";
+    public static final String settingsPowerButtonCount = "settingsPowerButtonCount";
     private static final String dbName = "activity.getStringR.string.saved_location_db";
+    public static final int settingsSafeZoneBoundryDefault = 200;
+    public static final int settingsPowerButtonCountDefault = 5;
 
     public static void storeinDB(String itemName, String itemValue, FragmentActivity activity){
         SharedPreferences sharedPref = activity.getSharedPreferences(dbName+itemName,activity.MODE_PRIVATE);

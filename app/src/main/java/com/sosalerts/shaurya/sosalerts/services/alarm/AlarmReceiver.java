@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
 /**
@@ -17,13 +18,17 @@ public class AlarmReceiver extends BroadcastReceiver {
     public static final String originator = "AlarmReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.e(fileName, "Alarm service With address ");
 
 
-        Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
-        locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, originator+(Math.random()));
-        //locationCordinatesIntent.putExtra(GetLocationCordinatesService.ADDRESS_RESULT_RECEIVER, new LocationTrackerIntentService());
-        context.startService(locationCordinatesIntent);
+        if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsLocationAutoUpdates,context))){
+            Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
+            locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, originator+(Math.random()));
+            //locationCordinatesIntent.putExtra(GetLocationCordinatesService.ADDRESS_RESULT_RECEIVER, new LocationTrackerIntentService());
+            context.startService(locationCordinatesIntent);
+        }else {
+            Log.e(fileName, "Alarm service to find location is disabled");
+        }
+
 
     }
 }
