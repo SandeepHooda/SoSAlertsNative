@@ -31,7 +31,7 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
     boolean paused = false;
     String leftToRead = null;
     String res = null;
-    private final String fileName = "ReadOut : ";
+    private final String fileName = this.getClass().getSimpleName();
     public ReadOut() {
         super("SpeechService");
     }
@@ -47,23 +47,23 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
         return null;
     }
 
-
-
+    private TextToSpeech myTTS;
+    private String whatToSay;
 
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        Intent checkTTSIntent = new Intent();
-        checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+
         String textToSpeak = intent.getStringExtra(MainActivity.textToSpeak);
         String orignator = intent.getStringExtra(MainActivity.orignationActivityName);
         if(null == textToSpeak){
             textToSpeak = "Hello";
         }
-        MainActivity.phoneFound = false;
+
 
         sayString(textToSpeak);
         if(IncomingSms.findMyPhone.equals(orignator)){
+            MainActivity.phoneFound = false;
             Intent dialogIntent = new Intent(this, MyDialog.class);
             dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(dialogIntent);
@@ -81,10 +81,18 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
 
 
     }
-    public void sayString(String string) {
+    public void sayString(String speak) {
+        whatToSay = speak;
+        myTTS = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                Log.e(fileName, "Text to speach  Status Read Out ##### $$$$$$$$$$$$$$$$$ "+status);
+                String utteranceId=this.hashCode() + "";
+                myTTS.speak(whatToSay, 1, null, utteranceId);
+            }
+        });
         if (MainActivity.myTTS != null) {
-            String utteranceId=this.hashCode() + "";
-            MainActivity.myTTS.speak(string, 1, null, utteranceId);
+
 
         }
 

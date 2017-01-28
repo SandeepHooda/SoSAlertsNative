@@ -46,7 +46,6 @@ public class LockService extends Service {
             registerReceiver(screenLockReceiver, filter);
             lockSericeStatted = true;
 
-            // Hopefully your alarm will have a lower frequency than this!
             alarmMgr = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
             Intent intentForAlrrm = new Intent(this, AlarmReceiver.class);
             alarmIntent = PendingIntent.getBroadcast(this, 0, intentForAlrrm, 0);

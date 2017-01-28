@@ -23,7 +23,7 @@ import java.util.Iterator;
  */
 
 public class AddressResultReceiver extends ResultReceiver {
-    private final String fileName = "AddressResultReceiver: ";
+    private final String fileName = this.getClass().getSimpleName();
 
     private Receiver mReceiver;
 

@@ -31,7 +31,9 @@
         <activity android:name=".services.util.PhoneVibrate" >
 
         </activity>
-        <service android:name=".services.util.GetLocationCordinatesActivity" >
+        <service android:name=".services.util.GetLocationCordinatesService" >
+
+        </service>
 
         </service>
 
