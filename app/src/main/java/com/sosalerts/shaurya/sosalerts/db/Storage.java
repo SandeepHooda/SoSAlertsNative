@@ -12,8 +12,11 @@ import com.sosalerts.shaurya.sosalerts.R;
 import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 /**
  * Created by shaurya on 1/24/2017.
@@ -112,6 +115,19 @@ public class Storage {
         }
         Log.e(fileName, "All phones = "+myemergencyContacts.toString());
         return myemergencyContacts.toString();
+    }
+    public static List<String> getEmergencyContactsList(Context activity){
+       String myemergencyContacts = getEmergencyContacts(activity);
+        StringTokenizer tokenizer = new StringTokenizer(myemergencyContacts, ",") ;
+        List<String> myemergencyContactsList = new ArrayList<String>();
+        while(tokenizer.hasMoreTokens()){
+            String number = tokenizer.nextToken();
+            if(null != number && number.trim().length() > 0){
+                myemergencyContactsList.add(number);
+            }
+
+        }
+        return myemergencyContactsList;
     }
 
     public static String getOnlyNumbers(String aPhoneNo){

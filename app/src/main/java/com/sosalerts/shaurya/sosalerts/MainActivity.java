@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
     private GoogleApiClient mGoogleApiClient;
 
     public static Map<String,String> allContacts = new HashMap<String,String>();
-    public static final boolean testMode = true;
+    public static final boolean testMode = false;
     private final String fileName = "MainActivity : ";
     @Override
     protected  void onResume(){

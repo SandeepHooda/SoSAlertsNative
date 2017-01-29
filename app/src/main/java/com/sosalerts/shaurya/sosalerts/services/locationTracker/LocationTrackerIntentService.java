@@ -3,6 +3,7 @@ package com.sosalerts.shaurya.sosalerts.services.locationTracker;
 import android.app.IntentService;
 import android.content.Intent;
 import android.location.Location;
+import android.telephony.SmsManager;
 import android.util.Log;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
@@ -78,17 +79,29 @@ public class LocationTrackerIntentService extends IntentService {
                     speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
+                    sendSMSToAll("Entering "+currentLocation);
                 }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
                     Intent speakIntent = new Intent(this, ReadOut.class);
                     speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
+                    sendSMSToAll("Exiting "+currentLocation);
                 }
             }
             previousLocation = currentLocation;
         }
     }
 
+    private void sendSMSToAll(String text){
+        SmsManager smsManager = SmsManager.getDefault();
+        List<String> emergencyPhones = Storage.getEmergencyContactsList(getApplicationContext());
+        if (null != emergencyPhones){
+            for (String phoneNo : emergencyPhones){
+                smsManager.sendTextMessage(phoneNo, null,  text, null, null);
+            }
+        }
+
+    }
     public static double distFrom(double lat1, double lng1, double lat2, double lng2) {
         double earthRadius = 6371000; //meters
         double dLat = Math.toRadians(lat2-lat1);
