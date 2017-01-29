@@ -49,28 +49,30 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
 
     private TextToSpeech myTTS;
     private String whatToSay;
+    public static final String textToSpeak = "textToSpeak";
+    public static boolean phoneFound = false;
 
     @Override
     protected void onHandleIntent(Intent intent) {
 
 
-        String textToSpeak = intent.getStringExtra(MainActivity.textToSpeak);
+        String whatToSay = intent.getStringExtra(textToSpeak);
         String orignator = intent.getStringExtra(MainActivity.orignationActivityName);
-        if(null == textToSpeak){
-            textToSpeak = "Hello";
+        if(null == whatToSay){
+            whatToSay = "Hello";
         }
 
 
-        sayString(textToSpeak);
+        sayString(whatToSay);
         if(IncomingSms.findMyPhone.equals(orignator)){
-            MainActivity.phoneFound = false;
+            phoneFound = false;
             Intent dialogIntent = new Intent(this, MyDialog.class);
             dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(dialogIntent);
-            while(!MainActivity.phoneFound){
+            while(!phoneFound){
 
-                Log.e(fileName, " MainActivity.phoneFound  "+MainActivity.phoneFound );
-                sayString(textToSpeak);
+                Log.e(fileName, " phoneFound  "+phoneFound );
+                sayString(whatToSay);
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
@@ -91,10 +93,6 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
                 myTTS.speak(whatToSay, 1, null, utteranceId);
             }
         });
-        if (MainActivity.myTTS != null) {
-
-
-        }
 
 
     }

@@ -67,10 +67,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
-    public static TextToSpeech myTTS;
-    public static final String textToSpeak = "textToSpeak";
 
-    public static boolean phoneFound = false;
     public static Map<String,String> allContacts = new HashMap<String,String>();
     public static Set<String> myemergencyContacts = new HashSet<>();
     public static final boolean testMode = true;
@@ -85,22 +82,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected  void onDestroy(){
         super.onPause();
         addressResultReceiver.setReceiver(null);
-         if (myTTS != null) {
-            myTTS.stop();
-            myTTS.shutdown();
-        }
+
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        myTTS = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                Log.e(fileName, "Text to speach  Status $$$$$$$$$$$$$$$$$ "+status);
-            }
-        });
+
         //addressResultReceiver = new AddressResultReceiver(new Handler());
         Intent intent = getIntent();
         intentOriginator = intent.getStringExtra(orignationActivityName);
@@ -121,19 +110,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             smsSenderPhoneNo = intent.getStringExtra(IncomingSms.phoneNo);
            userLocationFacade(null);
         }
-        if(IncomingSms.findMyPhone.equals(intentOriginator)){
-            Intent speakIntent = new Intent(this, ReadOut.class);
-            speakIntent.putExtra(textToSpeak,"Hello I am here");
-            speakIntent.putExtra(orignationActivityName,intentOriginator);
-            startService(speakIntent);
-        }
 
-        /*if(IncomingSms.whereAreYou.equals(intentAction)){
-            Intent speakIntent = new Intent(this, ReadOut.class);
-            speakIntent.putExtra(MainActivity.orignationActivityName, IncomingSms.whereAreYou);
-            speakIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
-            startService(speakIntent);
-        }*/
 
     }
 

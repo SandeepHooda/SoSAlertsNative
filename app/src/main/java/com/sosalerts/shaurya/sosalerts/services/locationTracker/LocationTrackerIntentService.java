@@ -75,12 +75,12 @@ public class LocationTrackerIntentService extends IntentService {
             if(previousLocation != null){// So that the when app starts for the firs time we can ignore this code
                 if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
                     Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(MainActivity.textToSpeak,"Entering "+currentLocation);
+                    speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
                 }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
                     Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(MainActivity.textToSpeak,"Exiting "+previousLocation);
+                    speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
                 }

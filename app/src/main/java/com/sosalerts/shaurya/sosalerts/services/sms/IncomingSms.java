@@ -53,10 +53,14 @@ public class IncomingSms extends BroadcastReceiver {
 
                         audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 100, AudioManager.FLAG_SHOW_UI + AudioManager.FLAG_PLAY_SOUND);
-                        Intent mainActivityIntent = new Intent(context, MainActivity.class);
+                        /*Intent mainActivityIntent = new Intent(context, MainActivity.class);
                         mainActivityIntent.putExtra(MainActivity.orignationActivityName, findMyPhone);
                         mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(mainActivityIntent);// to get user cordinates
+                        context.startActivity(mainActivityIntent);// to get user cordinates*/
+                        Intent speakIntent = new Intent(context, ReadOut.class);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Here I am");
+                        speakIntent.putExtra(MainActivity.orignationActivityName,findMyPhone);
+                        context.startService(speakIntent);
                     }
                     if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,context))){
                         if("wru".equals(message) || "where are you".equals(message)){
