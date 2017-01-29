@@ -96,6 +96,17 @@ public class Storage {
         return  sharedPref.getStringSet(itemName, null);
 
     }
+    public static String getEmergencyContacts(Context activity){
+        StringBuffer myemergencyContacts = new StringBuffer();
+        Set<String> savedContacts = Storage.getFromDBDBStringSet(Storage.savedContacts,activity);
+
+        if (savedContacts != null && savedContacts.size() > 0) {
+            for (String aPhoneNo : savedContacts) {
+                myemergencyContacts.append(","+Storage.getOnlyNumbers(aPhoneNo));
+            }
+        }
+        return myemergencyContacts.toString();
+    }
 
     public static String getOnlyNumbers(String aPhoneNo){
         if(null != aPhoneNo){

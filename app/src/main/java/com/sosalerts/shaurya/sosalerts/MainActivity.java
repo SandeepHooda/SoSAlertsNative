@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
 
     public static Map<String,String> allContacts = new HashMap<String,String>();
-    //public static Set<String> myemergencyContacts = new HashSet<>();
     public static final boolean testMode = false;
     private final String fileName = "MainActivity : ";
     @Override
@@ -89,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
 
 
-        //addressResultReceiver = new AddressResultReceiver(new Handler());
         Intent intent = getIntent();
         intentOriginator = intent.getStringExtra(orignationActivityName);
         createTabs(intentOriginator);
@@ -98,12 +96,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.e(fileName, "Main activity Intent action  "+intentOriginator);
         if(!oneTimeActivityStarted){
             oneTimeActivityStarted = true;
-
             checkPermissions();
             readContacts();
-
-           // Log.e(fileName, "Registered Address listner ");
-           startService(new Intent(getApplicationContext(), LockService.class));//Power button service
+            startService(new Intent(getApplicationContext(), LockService.class));//Power button service
         }
         if(ScreenReceiver.SOSAlert.equals(intentOriginator)  ){
            userLocationFacade(null);
@@ -187,8 +182,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle arg0) {
-
-        // Once connected with google api, get the location
         displayLocation();
     }
 

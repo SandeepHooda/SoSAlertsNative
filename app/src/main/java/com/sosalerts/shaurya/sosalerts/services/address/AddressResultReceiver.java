@@ -99,6 +99,7 @@ public class AddressResultReceiver extends ResultReceiver {
 
             for (String contact:myemergencyContactsList ){
                 if(!MainActivity.testMode){
+                    Log.e(fileName, contact+": I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
                     smsManager.sendTextMessage(contact, null,  "I am in danger. I am at "+address + " Exact location: " +cordinates, null, null);
 
                 }else {

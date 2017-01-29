@@ -35,14 +35,7 @@ public class IncomingSms extends BroadcastReceiver {
     private boolean phoneFound = false;
     @Override
     public void onReceive(Context context, Intent intent) {
-        StringBuffer myemergencyContacts = new StringBuffer();
-        Set<String> savedContacts = Storage.getFromDBDBStringSet(Storage.savedContacts,context);
 
-        if (savedContacts != null && savedContacts.size() > 0) {
-            for (String aPhoneNo : savedContacts) {
-                myemergencyContacts.append(","+Storage.getOnlyNumbers(aPhoneNo));
-            }
-        }
         final Bundle bundle = intent.getExtras();
         try {
 
@@ -77,7 +70,7 @@ public class IncomingSms extends BroadcastReceiver {
                     }
                     if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,context))){
                         if("wru".equals(message) || "where are you".equals(message)){
-
+                            String myemergencyContacts = Storage.getEmergencyContacts(context);
                             Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
                             locationCordinatesIntent.putExtra(phoneNo, senderNum);
                             String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_ONENumber;

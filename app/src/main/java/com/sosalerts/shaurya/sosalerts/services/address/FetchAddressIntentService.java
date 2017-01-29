@@ -18,6 +18,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class FetchAddressIntentService extends IntentService{
     public FetchAddressIntentService() {
         super("Sandeep");
     }
-    private void deliverResultToReceiver(Intent intent,int resultCode, String address, String cordinates, String countryCode, String intentOriginator, String phoneNo) {
+    private void deliverResultToReceiver(Intent intent,int resultCode, String address, String cordinates, String countryCode, String intentOriginator, String phoneNo ,String emergencyContacts) {
 
 
         ResultReceiver rec = intent.getParcelableExtra(ADDRESS_RESULT_RECEIVER);
@@ -68,7 +69,7 @@ public class FetchAddressIntentService extends IntentService{
         b.putString(Location_ADDRESS,address);
         b.putString(IncomingSms.phoneNo,phoneNo);
         b.putString(MainActivity.orignationActivityName,intentOriginator);
-        b.putString(IncomingSms.myemergencyContactsNumbers,intent.getStringExtra(IncomingSms.myemergencyContactsNumbers));
+        b.putString(IncomingSms.myemergencyContactsNumbers,emergencyContacts);
         rec.send(0, b);
 
         //stopSelf();
@@ -114,7 +115,7 @@ public class FetchAddressIntentService extends IntentService{
                 //errorMessage = getString(R.string.no_address_found);
                 Log.e(fileName, "no_address_found");
             }
-            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "",originator,phonmeNo);
+            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "",originator,phonmeNo,"");
         } else {
             Address address = addresses.get(0);
 
@@ -126,11 +127,11 @@ public class FetchAddressIntentService extends IntentService{
                 addressFragments.add(address.getAddressLine(i));
 
             }
-
+            String emergencyContacts = Storage.getEmergencyContacts(getApplicationContext());
             deliverResultToReceiver(intent,SUCCESS_RESULT,
                     TextUtils.join(System.getProperty("line.separator"),
                             addressFragments),""+cordinates.getLatitude()+","+
-                            cordinates.getLongitude(), address.getCountryCode(),originator,phonmeNo);
+                            cordinates.getLongitude(), address.getCountryCode(),originator,phonmeNo,emergencyContacts);
         }
     }
     @Override
