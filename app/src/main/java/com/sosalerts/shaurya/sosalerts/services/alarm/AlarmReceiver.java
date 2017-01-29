@@ -22,8 +22,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsLocationAutoUpdates,context))){
             Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
-            locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, originator+(Math.random()));
-            //locationCordinatesIntent.putExtra(GetLocationCordinatesService.ADDRESS_RESULT_RECEIVER, new LocationTrackerIntentService());
             context.startService(locationCordinatesIntent);
         }else {
             Log.e(fileName, "Alarm service to find location is disabled");

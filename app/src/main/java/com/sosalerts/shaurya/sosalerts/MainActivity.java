@@ -63,14 +63,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Location mLastLocation;
     public static final String orignationActivityName = "orignationActivityName";
     private String intentOriginator;
-    private String smsSenderPhoneNo= null;
 
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
 
     public static Map<String,String> allContacts = new HashMap<String,String>();
-    public static Set<String> myemergencyContacts = new HashSet<>();
-    public static final boolean testMode = true;
+    //public static Set<String> myemergencyContacts = new HashSet<>();
+    public static final boolean testMode = false;
     private final String fileName = "MainActivity : ";
     @Override
     protected  void onResume(){
@@ -106,8 +105,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
            // Log.e(fileName, "Registered Address listner ");
            startService(new Intent(getApplicationContext(), LockService.class));//Power button service
         }
-        if(ScreenReceiver.SOSAlert.equals(intentOriginator) || IncomingSms.whereAreYou.equals(intentOriginator) ){
-            smsSenderPhoneNo = intent.getStringExtra(IncomingSms.phoneNo);
+        if(ScreenReceiver.SOSAlert.equals(intentOriginator)  ){
            userLocationFacade(null);
         }
 
@@ -116,9 +114,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
    public void userLocationFacade(String nameFromSaveLocationTab){
-       if(!IncomingSms.whereAreYou.equals(intentOriginator)){
-           smsSenderPhoneNo = null;
-       }
+
        this.currentLocationName = nameFromSaveLocationTab;
        // First we need to check availability of play services
        if (checkPlayServices()) {
@@ -133,9 +129,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         intent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES, mLastLocation);
         intent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER, addressResultReceiver);
         intent.putExtra(orignationActivityName, intentOriginator);
-        if(IncomingSms.whereAreYou.equals(intentOriginator)){
-            intent.putExtra(IncomingSms.phoneNo, smsSenderPhoneNo);
-        }
         startService(intent);
     }
 

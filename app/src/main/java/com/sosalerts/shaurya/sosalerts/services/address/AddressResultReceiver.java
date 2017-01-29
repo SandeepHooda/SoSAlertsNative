@@ -16,7 +16,10 @@ import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
 import com.sosalerts.shaurya.sosalerts.services.util.PhoneVibrate;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Created by shaurya on 1/24/2017.
@@ -42,6 +45,7 @@ public class AddressResultReceiver extends ResultReceiver {
 
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
+
         String origination = resultData.getString(MainActivity.orignationActivityName);
         Log.e(fileName, "origination "+origination+" sms ="+resultData.getString(IncomingSms.phoneNo) );
 
@@ -64,10 +68,21 @@ public class AddressResultReceiver extends ResultReceiver {
 
         // b.putString(LOCATION_DATA_EXTRA,cordinates);
         //b.putString(RESULT_DATA_KEY,message);
+        String myemergencyContacts =  resultData.getString(IncomingSms.myemergencyContactsNumbers);
+        StringTokenizer tokenizer = new StringTokenizer(myemergencyContacts, ",") ;
+        List<String> myemergencyContactsList = new ArrayList<String>();
+         while(tokenizer.hasMoreTokens()){
+             String number = tokenizer.nextToken();
+             if(null != number && number.trim().length() > 0){
+                 myemergencyContactsList.add(number);
+             }
+
+        }
         if (IncomingSms.whereAreYou.equals(origination)){
             String phoneNo = resultData.getString(IncomingSms.phoneNo);
             Log.e(fileName, "Phone no "+phoneNo);
-            if(MainActivity.myemergencyContacts.contains(Storage.getOnlyNumbers(phoneNo))){
+
+            if(myemergencyContacts.contains(Storage.getOnlyNumbers(phoneNo))){
 
                 if(!MainActivity.testMode){
                     smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
@@ -81,7 +96,8 @@ public class AddressResultReceiver extends ResultReceiver {
             }
 
         }else if(ScreenReceiver.SOSAlert.equals(origination)){
-            for (String contact:MainActivity.myemergencyContacts ){
+
+            for (String contact:myemergencyContactsList ){
                 if(!MainActivity.testMode){
                     smsManager.sendTextMessage(contact, null,  "I am in danger. I am at "+address + " Exact location: " +cordinates, null, null);
 

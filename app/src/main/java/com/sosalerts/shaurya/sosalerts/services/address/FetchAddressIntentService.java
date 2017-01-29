@@ -59,6 +59,7 @@ public class FetchAddressIntentService extends IntentService{
     }
     private void deliverResultToReceiver(Intent intent,int resultCode, String address, String cordinates, String countryCode, String intentOriginator, String phoneNo) {
 
+
         ResultReceiver rec = intent.getParcelableExtra(ADDRESS_RESULT_RECEIVER);
 
         Bundle b= new Bundle();
@@ -67,6 +68,7 @@ public class FetchAddressIntentService extends IntentService{
         b.putString(Location_ADDRESS,address);
         b.putString(IncomingSms.phoneNo,phoneNo);
         b.putString(MainActivity.orignationActivityName,intentOriginator);
+        b.putString(IncomingSms.myemergencyContactsNumbers,intent.getStringExtra(IncomingSms.myemergencyContactsNumbers));
         rec.send(0, b);
 
         //stopSelf();
@@ -80,7 +82,6 @@ public class FetchAddressIntentService extends IntentService{
 
         // Get the location passed to this service through an extra.
         Location cordinates = intent.getParcelableExtra( LOCATION_DATA_CORDINATES);
-        intent.getStringExtra(MainActivity.orignationActivityName);
         String originator = intent.getStringExtra(MainActivity.orignationActivityName);
         String phonmeNo = intent.getStringExtra(IncomingSms.phoneNo);
         Log.e(fileName, "Address service" + cordinates.getLatitude() +" --- "+cordinates.getLongitude() +" ---"+ originator +" --"+ phonmeNo);

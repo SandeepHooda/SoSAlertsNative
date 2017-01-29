@@ -11,6 +11,14 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.address.SavedContacts;
+import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerIntentService;
+import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by shaurya on 1/26/2017.
@@ -20,12 +28,21 @@ public class IncomingSms extends BroadcastReceiver {
     public static final String findMyPhone = "findMyPhone";
     public static final String whereAreYou = "WhereAreYou";
     public static final String phoneNo = "";
+    public static final String myemergencyContactsNumbers = "myemergencyContactsNumbers";
     // Get the object of SmsManager
     final SmsManager sms = SmsManager.getDefault();
     private final String fileName = this.getClass().getSimpleName();
     private boolean phoneFound = false;
     @Override
     public void onReceive(Context context, Intent intent) {
+        StringBuffer myemergencyContacts = new StringBuffer();
+        Set<String> savedContacts = Storage.getFromDBDBStringSet(Storage.savedContacts,context);
+
+        if (savedContacts != null && savedContacts.size() > 0) {
+            for (String aPhoneNo : savedContacts) {
+                myemergencyContacts.append(","+Storage.getOnlyNumbers(aPhoneNo));
+            }
+        }
         final Bundle bundle = intent.getExtras();
         try {
 
@@ -53,10 +70,6 @@ public class IncomingSms extends BroadcastReceiver {
 
                         audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 100, AudioManager.FLAG_SHOW_UI + AudioManager.FLAG_PLAY_SOUND);
-                        /*Intent mainActivityIntent = new Intent(context, MainActivity.class);
-                        mainActivityIntent.putExtra(MainActivity.orignationActivityName, findMyPhone);
-                        mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(mainActivityIntent);// to get user cordinates*/
                         Intent speakIntent = new Intent(context, ReadOut.class);
                         speakIntent.putExtra(ReadOut.textToSpeak,"Here I am");
                         speakIntent.putExtra(MainActivity.orignationActivityName,findMyPhone);
@@ -64,11 +77,13 @@ public class IncomingSms extends BroadcastReceiver {
                     }
                     if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,context))){
                         if("wru".equals(message) || "where are you".equals(message)){
-                            Intent mainActivityIntent = new Intent(context, MainActivity.class);
-                            mainActivityIntent.putExtra(MainActivity.orignationActivityName, whereAreYou);
-                            mainActivityIntent.putExtra(phoneNo, senderNum);
-                            mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            context.startActivity(mainActivityIntent);// to get user cordinates
+
+                            Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
+                            locationCordinatesIntent.putExtra(phoneNo, senderNum);
+                            String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_ONENumber;
+                            locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
+                            locationCordinatesIntent.putExtra(myemergencyContactsNumbers,myemergencyContacts.toString());//myemergencyContacts
+                            context.startService(locationCordinatesIntent);
 
                         }
                     }

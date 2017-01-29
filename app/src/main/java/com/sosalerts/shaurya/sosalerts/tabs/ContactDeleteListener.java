@@ -30,7 +30,6 @@ public class ContactDeleteListener implements   AdapterView.OnItemLongClickListe
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE: // Yes button clicked
-                        MainActivity.myemergencyContacts.remove(Storage.getOnlyNumbers(itemValue.getContactNo()));
                         Storage.deleteinDBStringSet(Storage.savedContacts, itemValue.getContactNo(), view.getContext());
                         break;
                     case DialogInterface.BUTTON_NEGATIVE: // No button clicked // do nothing

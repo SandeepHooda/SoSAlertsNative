@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.os.ResultReceiver;
@@ -15,7 +16,10 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
+import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
 import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerIntentService;
+import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 
 
 /**
@@ -29,10 +33,13 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     private final String fileName = this.getClass().getSimpleName();
     private Location mLastLocation;
     public static final String PACKAGE_NAME =         "com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService";
-    public static final String ADDRESS_RESULT_RECEIVER = PACKAGE_NAME +        ".addressResultReceiver";
+    //public static final String ADDRESS_RESULT_RECEIVER = PACKAGE_NAME +        ".addressResultReceiver";
     public static final String LOCATION_CORDINATES = PACKAGE_NAME +        ".LOCATION_CORDINATES";
     public static final String SAVED_LOCATIONS = PACKAGE_NAME +        ".SAVED_LOCATIONS";
     public static final String GetLocationCordinatesServiceReceiver = PACKAGE_NAME +        ".GetLocationCordinatesServiceReceiver";
+    public static final String ChainOfDuty = PACKAGE_NAME +        ".ChainOfDuty";
+    public static final String ChainOfDuty_Address =   "ChainOfDuty_Address";
+    public static final String ChainOfDuty_SMS_ONENumber =   "ChainOfDuty_SMS_ONENumber";
 
     private String whatToSpeak;
     private LocationTrackerIntentService locationReceiver ;
@@ -59,7 +66,6 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     }
     @Override
     protected void onHandleIntent(Intent intent) {
-        String data = intent.getStringExtra(MainActivity.orignationActivityName);
         this.intent = intent;
         userLocationFacade();
 
@@ -126,20 +132,23 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                 .getLastLocation(mGoogleApiClient);
         Log.e(fileName, " mLastLocation "+mLastLocation);
         if (mLastLocation != null) {
-            ResultReceiver receiver = null;
-            if(null != intent){
-                receiver = intent.getParcelableExtra(ADDRESS_RESULT_RECEIVER);
-            }
+            String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
 
-            if(receiver != null){
-                Bundle b= new Bundle();
-                b.putParcelable(LOCATION_CORDINATES,mLastLocation);
-                receiver.send(0, b);
-            }else {
+            if(nextChainOfDuty != null && nextChainOfDuty.indexOf(ChainOfDuty_Address) >= 0){
+                Intent addressNameIntent = new Intent(this, FetchAddressIntentService.class);
+                addressNameIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
+                addressNameIntent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES,mLastLocation);
+                addressNameIntent.putExtra(MainActivity.orignationActivityName,IncomingSms.whereAreYou);
+                addressNameIntent.putExtra(IncomingSms.myemergencyContactsNumbers,intent.getStringExtra(IncomingSms.myemergencyContactsNumbers));
+                addressNameIntent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER,new AddressResultReceiver(new Handler()));
+                startService(addressNameIntent);
+            }else{
                 Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
                 addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
                 startService(addLocatorIntent);
             }
+
+
 
 
         }
