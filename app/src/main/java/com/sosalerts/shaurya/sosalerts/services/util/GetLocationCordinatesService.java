@@ -16,10 +16,12 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
 import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerIntentService;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
+import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 
 
 /**
@@ -125,6 +127,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     }
     private void deliverResults(Intent intent) {
         Log.e(fileName, " display location ");
+
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
@@ -153,9 +156,18 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                 startService(addressNameIntent);
             }else{
                 if (mLastLocation != null){
+                    String currentLocationName = intent.getStringExtra(LocationsTab.savedLocationName);
+                    if (currentLocationName != null){
+                        Log.e(fileName, " Storing this location in db");
+                        String location = mLastLocation.getLatitude()+","+mLastLocation.getLongitude();
+                        Storage.storeinDBStringSet(Storage.savedLocations, currentLocationName +"_"+"https://www.google.com/maps/place/@"+location+",16z",this);
+                    }
+
                     Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
                     startService(addLocatorIntent);
+                }else {
+                    Log.e(fileName, " Location is null !!");
                 }
 
             }

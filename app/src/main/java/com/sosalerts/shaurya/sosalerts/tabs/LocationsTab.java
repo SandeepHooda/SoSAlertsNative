@@ -19,6 +19,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.R;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.SavedLocations;
+import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +37,8 @@ public class LocationsTab extends Fragment {
     ListView listView ;
     public static String actionName = "LocationsTab";
     private final String fileName = this.getClass().getSimpleName();
+    public static final String PACKAGE_NAME =         "com.sosalerts.shaurya.sosalerts.tabs.LocationsTab";
+    public static String savedLocationName = PACKAGE_NAME+".savedLocationName";
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
          view = inflater.inflate(R.layout.locations_tab,   container, false);
@@ -128,7 +131,9 @@ public class LocationsTab extends Fragment {
     public void saveLocation(View v) {
         EditText editText = (EditText) view.findViewById(R.id.location_name);
         String locationName = editText.getText().toString();
-      ((MainActivity)getActivity()).userLocationFacade(locationName);
+        Intent saveLocationIntent = new Intent(v.getContext(), GetLocationCordinatesService.class);
+        saveLocationIntent.putExtra(savedLocationName,locationName);
+        v.getContext().startService(saveLocationIntent);
      }
 }
 

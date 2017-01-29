@@ -46,8 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener , AddressResultReceiver.Receiver{
+public class MainActivity extends AppCompatActivity implements AddressResultReceiver.Receiver{
 
 
 
@@ -104,24 +103,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
 
-   public void userLocationFacade(String nameFromSaveLocationTab){
-
-       this.currentLocationName = nameFromSaveLocationTab;
-       // First we need to check availability of play services
-       if (checkPlayServices()) {
-           Log.e(fileName, "buildGoogleApiClient");
-           // Building the GoogleApi client
-           buildGoogleApiClient();
-           getUserLocation();
-       }
-   }
-    private void startAddressIntentService() {
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES, mLastLocation);
-        intent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER, addressResultReceiver);
-        intent.putExtra(orignationActivityName, intentOriginator);
-        startService(intent);
-    }
 
     private void checkPermissions(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)     != PackageManager.PERMISSION_GRANTED) {
@@ -167,82 +148,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
 
-    /**
-     * Google api callback methods
-     */
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
-                + result.getErrorCode());
-    }
-
-    @Override
-    public void onConnected(Bundle arg0) {
-        displayLocation();
-    }
-
-    @Override
-    public void onConnectionSuspended(int arg0) {
-        mGoogleApiClient.connect();
-    }
-    private void getUserLocation(){
-        Log.e(fileName, " getting location ");
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
-    }
-    private void displayLocation() {
-        Log.e(fileName, " display location ");
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            return;
-        }
-
-        mLastLocation = LocationServices.FusedLocationApi
-                .getLastLocation(mGoogleApiClient);
-        Log.e(fileName, " mLastLocation "+mLastLocation);
-        if (mLastLocation != null) {
-            double latitude = mLastLocation.getLatitude();
-            double longitude = mLastLocation.getLongitude();
-            Log.e(fileName, "location ::::: "+latitude+ " --- "+longitude);
-            String location = latitude+","+longitude;
-            if (this.currentLocationName != null){
-                Storage.storeinDBStringSet(Storage.savedLocations, this.currentLocationName +"_"+"https://www.google.com/maps/place/@"+location+",16z",this);
-            }else {
-                startAddressIntentService();
-            }
-
-        }
-    }
-
-    /**
-     * Creating google api client object
-     * */
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API).build();
-    }
-
-    /**
-     * Method to verify google play services on the device
-     * */
-    private boolean checkPlayServices() {
-        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
-        int resultCode = googleAPI.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if(googleAPI.isUserResolvableError(resultCode)) {
-                googleAPI.getErrorDialog(this, resultCode,        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            }
-            else {
-                Toast.makeText(getApplicationContext(),     "This device is not supported.", Toast.LENGTH_LONG).show();
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
 
 
     private void createTabs(String tabName){

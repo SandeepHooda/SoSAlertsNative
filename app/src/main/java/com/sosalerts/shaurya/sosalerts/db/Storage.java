@@ -69,6 +69,7 @@ public class Storage {
     private static void refreshTab(Context activity, String tabName){
         Intent intent = new Intent(activity, MainActivity.class);
         intent.putExtra(MainActivity.orignationActivityName, tabName);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(intent);
 
     }
