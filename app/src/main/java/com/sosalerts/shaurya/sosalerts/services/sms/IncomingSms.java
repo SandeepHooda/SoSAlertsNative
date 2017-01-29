@@ -28,7 +28,7 @@ public class IncomingSms extends BroadcastReceiver {
     public static final String findMyPhone = "findMyPhone";
     public static final String whereAreYou = "WhereAreYou";
     public static final String phoneNo = "";
-    public static final String myemergencyContactsNumbers = "myemergencyContactsNumbers";
+
     // Get the object of SmsManager
     final SmsManager sms = SmsManager.getDefault();
     private final String fileName = this.getClass().getSimpleName();
@@ -75,7 +75,8 @@ public class IncomingSms extends BroadcastReceiver {
                             locationCordinatesIntent.putExtra(phoneNo, senderNum);
                             String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_ONENumber;
                             locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
-                            locationCordinatesIntent.putExtra(myemergencyContactsNumbers,myemergencyContacts.toString());//myemergencyContacts
+                            locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, whereAreYou);
+                            locationCordinatesIntent.putExtra(GetLocationCordinatesService.myemergencyContactsNumbers,myemergencyContacts);//myemergencyContacts
                             context.startService(locationCordinatesIntent);
 
                         }
