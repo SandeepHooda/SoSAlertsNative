@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
+import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
 
 /**
  * Created by shaurya on 1/26/2017.
@@ -19,10 +20,10 @@ public class MyDialog extends Activity {
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE: // Yes button clicked
-                        MainActivity.phoneFound = true;
+                        ReadOut.phoneFound = true;
                         break;
                     case DialogInterface.BUTTON_NEGATIVE: // No button clicked // do nothing
-                        MainActivity.phoneFound = true;
+                        ReadOut.phoneFound = true;
                         break;
                 } } };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
