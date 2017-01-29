@@ -20,6 +20,7 @@ import android.util.Log;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
+import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class FetchAddressIntentService extends IntentService{
         b.putString(Location_ADDRESS,address);
         b.putString(IncomingSms.phoneNo,phoneNo);
         b.putString(MainActivity.orignationActivityName,intentOriginator);
-        b.putString(IncomingSms.myemergencyContactsNumbers,emergencyContacts);
+        b.putString(GetLocationCordinatesService.myemergencyContactsNumbers,emergencyContacts);
         rec.send(0, b);
 
         //stopSelf();
@@ -80,34 +81,36 @@ public class FetchAddressIntentService extends IntentService{
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         String errorMessage = "";
+        String emergencyContacts = Storage.getEmergencyContacts(getApplicationContext());
 
         // Get the location passed to this service through an extra.
         Location cordinates = intent.getParcelableExtra( LOCATION_DATA_CORDINATES);
         String originator = intent.getStringExtra(MainActivity.orignationActivityName);
         String phonmeNo = intent.getStringExtra(IncomingSms.phoneNo);
-        Log.e(fileName, "Address service" + cordinates.getLatitude() +" --- "+cordinates.getLongitude() +" ---"+ originator +" --"+ phonmeNo);
-
-
         List<Address> addresses = null;
+        if(null != cordinates){
+            Log.e(fileName, "Address service" + cordinates.getLatitude() +" --- "+cordinates.getLongitude() +" ---"+ originator +" --"+ phonmeNo);
+            try {
+                addresses = geocoder.getFromLocation(
+                        cordinates.getLatitude(),
+                        cordinates.getLongitude(),
 
-        try {
-            addresses = geocoder.getFromLocation(
-                    cordinates.getLatitude(),
-                    cordinates.getLongitude(),
-
-                    1);
-        } catch (IOException ioException) {
-            // Catch network or other I/O problems.
-            //errorMessage = getString(R.string.service_not_available);
-            Log.e(fileName, "service_not_available", ioException);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            // Catch invalid latitude or longitude values.
-            //errorMessage = getString(R.string.);
-            Log.e(fileName, "invalid_lat_long_used" + ". " +
-                    "Latitude = " + cordinates.getLatitude() +
-                    ", Longitude = " +
-                    cordinates.getLongitude(), illegalArgumentException);
+                        1);
+            } catch (IOException ioException) {
+                // Catch network or other I/O problems.
+                //errorMessage = getString(R.string.service_not_available);
+                Log.e(fileName, "service_not_available", ioException);
+            } catch (IllegalArgumentException illegalArgumentException) {
+                // Catch invalid latitude or longitude values.
+                //errorMessage = getString(R.string.);
+                Log.e(fileName, "invalid_lat_long_used" + ". " +
+                        "Latitude = " + cordinates.getLatitude() +
+                        ", Longitude = " +
+                        cordinates.getLongitude(), illegalArgumentException);
+            }
         }
+
+
 
         // Handle case where no address was found.
         if (addresses == null || addresses.size()  == 0) {
@@ -115,7 +118,7 @@ public class FetchAddressIntentService extends IntentService{
                 //errorMessage = getString(R.string.no_address_found);
                 Log.e(fileName, "no_address_found");
             }
-            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "",originator,phonmeNo,"");
+            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "",originator,phonmeNo,emergencyContacts);
         } else {
             Address address = addresses.get(0);
 
@@ -127,7 +130,7 @@ public class FetchAddressIntentService extends IntentService{
                 addressFragments.add(address.getAddressLine(i));
 
             }
-            String emergencyContacts = Storage.getEmergencyContacts(getApplicationContext());
+
             deliverResultToReceiver(intent,SUCCESS_RESULT,
                     TextUtils.join(System.getProperty("line.separator"),
                             addressFragments),""+cordinates.getLatitude()+","+

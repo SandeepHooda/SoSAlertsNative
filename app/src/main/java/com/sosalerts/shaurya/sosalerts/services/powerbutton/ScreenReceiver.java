@@ -18,6 +18,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
 import java.util.Date;
 
@@ -48,14 +49,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                 if (powerButtonPressCount >= triggerAlertAfterCount) {
                     powerButtonPressCount = 0;
 
-                    //Danger
-                    Intent mainActivityIntent = new Intent(context, MainActivity.class);
-                    mainActivityIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
-                    mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Log.e(fileName, "Staring main activity with danger flag");
-                    //context.startService(new Intent(context, FetchAddressIntentService.class));//Fetch address service
-                    SmsManager smsManager = SmsManager.getDefault();
-                    // smsManager.sendTextMessage("540", null, "I am in danger. ", null, null);
+                    //call a phone
                     Intent phoneIntent = new Intent(Intent.ACTION_CALL);
                     phoneIntent.setData(Uri.parse("tel:9216411835"));
                     phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -64,8 +58,21 @@ public class ScreenReceiver extends BroadcastReceiver {
                         return;
                     }
                     //context.startActivity(phoneIntent);
-                    context.startActivity(mainActivityIntent);// to get user cordinates
-                    //getUserLocationCordinates()
+
+                    //SMS to all
+                   /* Intent mainActivityIntent = new Intent(context, MainActivity.class);
+                    mainActivityIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
+                    mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Log.e(fileName, "Staring main activity with danger flag");
+                    context.startActivity(mainActivityIntent);*/
+                    String myemergencyContacts = Storage.getEmergencyContacts(context);
+                    Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
+                    String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_AllContact;
+                    locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
+                    locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
+                    locationCordinatesIntent.putExtra(GetLocationCordinatesService.myemergencyContactsNumbers,myemergencyContacts);//myemergencyContacts
+                    context.startService(locationCordinatesIntent);
+
                 }
             } else {
                 Log.e(fileName, "First time power pressed "+powerButtonPressCount);

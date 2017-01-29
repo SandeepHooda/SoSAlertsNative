@@ -13,6 +13,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
+import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
 import com.sosalerts.shaurya.sosalerts.services.util.PhoneVibrate;
 
@@ -68,7 +69,8 @@ public class AddressResultReceiver extends ResultReceiver {
 
         // b.putString(LOCATION_DATA_EXTRA,cordinates);
         //b.putString(RESULT_DATA_KEY,message);
-        String myemergencyContacts =  resultData.getString(IncomingSms.myemergencyContactsNumbers);
+        String myemergencyContacts =  resultData.getString(GetLocationCordinatesService.myemergencyContactsNumbers);
+        Log.e(fileName, "myemergencyContacts  ="+myemergencyContacts);
         StringTokenizer tokenizer = new StringTokenizer(myemergencyContacts, ",") ;
         List<String> myemergencyContactsList = new ArrayList<String>();
          while(tokenizer.hasMoreTokens()){
@@ -78,6 +80,7 @@ public class AddressResultReceiver extends ResultReceiver {
              }
 
         }
+        Log.e(fileName, "Total myemergencyContactsList   ="+myemergencyContactsList);
         if (IncomingSms.whereAreYou.equals(origination)){
             String phoneNo = resultData.getString(IncomingSms.phoneNo);
             Log.e(fileName, "Phone no "+phoneNo);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
@@ -29,6 +30,8 @@ public class Storage {
     private static final String dbName = "activity.getStringR.string.saved_location_db";
     public static final int settingsSafeZoneBoundryDefault = 200;
     public static final int settingsPowerButtonCountDefault = 5;
+
+    private static final String fileName = Storage.class.getSimpleName();
 
     public static void storeinDB(String itemName, String itemValue, FragmentActivity activity){
         SharedPreferences sharedPref = activity.getSharedPreferences(dbName+itemName,activity.MODE_PRIVATE);
@@ -102,9 +105,11 @@ public class Storage {
 
         if (savedContacts != null && savedContacts.size() > 0) {
             for (String aPhoneNo : savedContacts) {
+                Log.e(fileName, "aPhoneNo = "+aPhoneNo);
                 myemergencyContacts.append(","+Storage.getOnlyNumbers(aPhoneNo));
             }
         }
+        Log.e(fileName, "All phones = "+myemergencyContacts.toString());
         return myemergencyContacts.toString();
     }
 

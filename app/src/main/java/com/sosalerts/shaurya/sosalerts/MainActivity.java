@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
 
     public static Map<String,String> allContacts = new HashMap<String,String>();
-    public static final boolean testMode = false;
+    public static final boolean testMode = true;
     private final String fileName = "MainActivity : ";
     @Override
     protected  void onResume(){
@@ -100,10 +100,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             readContacts();
             startService(new Intent(getApplicationContext(), LockService.class));//Power button service
         }
-        if(ScreenReceiver.SOSAlert.equals(intentOriginator)  ){
-           userLocationFacade(null);
-        }
-
 
     }
 

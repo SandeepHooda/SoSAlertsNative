@@ -40,6 +40,8 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     public static final String ChainOfDuty = PACKAGE_NAME +        ".ChainOfDuty";
     public static final String ChainOfDuty_Address =   "ChainOfDuty_Address";
     public static final String ChainOfDuty_SMS_ONENumber =   "ChainOfDuty_SMS_ONENumber";
+    public static final String ChainOfDuty_SMS_AllContact =   "ChainOfDuty_SMS_AllContact";
+    public static final String myemergencyContactsNumbers = "myemergencyContactsNumbers";
 
     private String whatToSpeak;
     private LocationTrackerIntentService locationReceiver ;
@@ -131,27 +133,33 @@ public class GetLocationCordinatesService extends IntentService implements Googl
         mLastLocation = LocationServices.FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
         Log.e(fileName, " mLastLocation "+mLastLocation);
-        if (mLastLocation != null) {
+
             String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
 
             if(nextChainOfDuty != null && nextChainOfDuty.indexOf(ChainOfDuty_Address) >= 0){
+                if (nextChainOfDuty.indexOf(",") > 0){
+                    nextChainOfDuty = nextChainOfDuty.substring(nextChainOfDuty.indexOf(",")+1);
+                }else {
+                    nextChainOfDuty = null;
+                }
+
                 Intent addressNameIntent = new Intent(this, FetchAddressIntentService.class);
                 addressNameIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
                 addressNameIntent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES,mLastLocation);
-                addressNameIntent.putExtra(MainActivity.orignationActivityName,IncomingSms.whereAreYou);
-                addressNameIntent.putExtra(IncomingSms.myemergencyContactsNumbers,intent.getStringExtra(IncomingSms.myemergencyContactsNumbers));
+                addressNameIntent.putExtra(MainActivity.orignationActivityName,intent.getStringExtra(MainActivity.orignationActivityName));
+                addressNameIntent.putExtra(ChainOfDuty,nextChainOfDuty);
+                addressNameIntent.putExtra(myemergencyContactsNumbers,intent.getStringExtra(myemergencyContactsNumbers));
                 addressNameIntent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER,new AddressResultReceiver(new Handler()));
                 startService(addressNameIntent);
             }else{
-                Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
-                addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
-                startService(addLocatorIntent);
+                if (mLastLocation != null){
+                    Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
+                    addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
+                    startService(addLocatorIntent);
+                }
+
             }
 
-
-
-
-        }
     }
 
     @Override
