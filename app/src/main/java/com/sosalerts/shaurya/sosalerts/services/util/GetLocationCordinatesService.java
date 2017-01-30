@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -14,6 +15,8 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
@@ -23,13 +26,15 @@ import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerI
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 
+import java.util.Locale;
+
 
 /**
  * Created by shaurya on 1/26/2017.
  */
 
 public class GetLocationCordinatesService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
     private final String fileName = this.getClass().getSimpleName();
@@ -111,7 +116,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
     @Override
     public void onConnected(Bundle bundle) {
-        deliverResults(intent);
+        getLocation();
 
     }
 
@@ -125,53 +130,88 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             mGoogleApiClient.connect();
         }
     }
-    private void deliverResults(Intent intent) {
+    private void getLocation() {
         Log.e(fileName, " display location ");
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
         }
+        try {
+            Thread.sleep(1000); //So that location is available
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         mLastLocation = LocationServices.FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
+        if (null != mLastLocation){
+            processLocationResults();
+        }else {
+            LocationRequest mLocationRequest = new LocationRequest();
+            mLocationRequest.setNumUpdates(1);
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
+        }
+
+
+    }
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        processLocationResults();
+    }
+
+    private void processLocationResults(){
         Log.e(fileName, " mLastLocation "+mLastLocation);
 
-            String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
+        String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
 
-            if(nextChainOfDuty != null && nextChainOfDuty.indexOf(ChainOfDuty_Address) >= 0){
-                if (nextChainOfDuty.indexOf(",") > 0){
-                    nextChainOfDuty = nextChainOfDuty.substring(nextChainOfDuty.indexOf(",")+1);
-                }else {
-                    nextChainOfDuty = null;
-                }
-
-                Intent addressNameIntent = new Intent(this, FetchAddressIntentService.class);
-                addressNameIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
-                addressNameIntent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES,mLastLocation);
-                addressNameIntent.putExtra(MainActivity.orignationActivityName,intent.getStringExtra(MainActivity.orignationActivityName));
-                addressNameIntent.putExtra(ChainOfDuty,nextChainOfDuty);
-                addressNameIntent.putExtra(myemergencyContactsNumbers,intent.getStringExtra(myemergencyContactsNumbers));
-                addressNameIntent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER,new AddressResultReceiver(new Handler()));
-                startService(addressNameIntent);
-            }else{
-                if (mLastLocation != null){
-                    String currentLocationName = intent.getStringExtra(LocationsTab.savedLocationName);
-                    if (currentLocationName != null){
-                        Log.e(fileName, " Storing this location in db");
-                        String location = mLastLocation.getLatitude()+","+mLastLocation.getLongitude();
-                        Storage.storeinDBStringSet(Storage.savedLocations, currentLocationName +"_"+"https://www.google.com/maps/place/@"+location+",16z",this);
-                    }
-
-                    Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
-                    addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
-                    startService(addLocatorIntent);
-                }else {
-                    Log.e(fileName, " Location is null !!");
-                }
-
+        if(nextChainOfDuty != null && nextChainOfDuty.indexOf(ChainOfDuty_Address) >= 0){
+            if (nextChainOfDuty.indexOf(",") > 0){
+                nextChainOfDuty = nextChainOfDuty.substring(nextChainOfDuty.indexOf(",")+1);
+            }else {
+                nextChainOfDuty = null;
             }
 
+            Intent addressNameIntent = new Intent(this, FetchAddressIntentService.class);
+            addressNameIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
+            addressNameIntent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES,mLastLocation);
+            addressNameIntent.putExtra(MainActivity.orignationActivityName,intent.getStringExtra(MainActivity.orignationActivityName));
+            addressNameIntent.putExtra(ChainOfDuty,nextChainOfDuty);
+            addressNameIntent.putExtra(myemergencyContactsNumbers,intent.getStringExtra(myemergencyContactsNumbers));
+            addressNameIntent.putExtra(FetchAddressIntentService.ADDRESS_RESULT_RECEIVER,new AddressResultReceiver(new Handler()));
+            startService(addressNameIntent);
+        }else{
+            if (mLastLocation != null){
+                String currentLocationName = intent.getStringExtra(LocationsTab.savedLocationName);
+                if (currentLocationName != null){
+                    Locale locale;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        locale = getApplicationContext().getResources().getConfiguration().getLocales().get(0);
+                    } else {
+                        locale = getApplicationContext().getResources().getConfiguration().locale;
+                    }
+                    Log.e(fileName, " Storing this location in db Locale Country ="+locale.getCountry() + "  "+locale.getDisplayCountry());
+                    String location = mLastLocation.getLatitude()+","+mLastLocation.getLongitude();
+                    String country = Storage.storeOrGetCountryCode(this,null);
+                    String mapLink = "https://www.google.com/maps/place/@";
+                    if ("IN".equals(country)){
+                        mapLink= "https://maps.mapmyindia.com/@";
+                    }
+                    Storage.storeinDBStringSet(Storage.savedLocations, currentLocationName +"_"+mapLink+location+",16z",this);
+                }
+
+                Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
+                addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
+                startService(addLocatorIntent);
+            }else {
+                Log.e(fileName, " Location is null !!");
+            }
+
+        }
     }
 
     @Override

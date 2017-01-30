@@ -11,14 +11,8 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
-import com.sosalerts.shaurya.sosalerts.services.address.SavedContacts;
-import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerIntentService;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 
 /**
  * Created by shaurya on 1/26/2017.
@@ -55,7 +49,7 @@ public class IncomingSms extends BroadcastReceiver {
 
                     if (null != message){
                         message = message.toLowerCase().trim();
-                        message.replaceAll("\\?","");
+                        message = message.replaceAll("\\?","").replaceAll("\\.","");
                     }
                     if("fmp".equals(message) || "find my phone".equals(message)){
                         AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);

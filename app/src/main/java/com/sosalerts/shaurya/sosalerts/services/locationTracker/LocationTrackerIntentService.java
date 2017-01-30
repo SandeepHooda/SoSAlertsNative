@@ -8,10 +8,9 @@ import android.util.Log;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
-import com.sosalerts.shaurya.sosalerts.services.address.SavedLocations;
-import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
+import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -85,7 +84,7 @@ public class LocationTrackerIntentService extends IntentService {
                     speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
-                    sendSMSToAll("Exiting "+currentLocation);
+                    sendSMSToAll("Exiting "+previousLocation);
                 }
             }
             previousLocation = currentLocation;

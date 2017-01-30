@@ -20,7 +20,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
 
-        if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsLocationAutoUpdates,context))){
+        if(Storage.isLocationTrackerOn(context)){
             Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
             context.startService(locationCordinatesIntent);
         }else {

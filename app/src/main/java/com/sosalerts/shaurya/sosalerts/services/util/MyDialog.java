@@ -5,9 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
-import com.sosalerts.shaurya.sosalerts.MainActivity;
-import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
-
 /**
  * Created by shaurya on 1/26/2017.
  */

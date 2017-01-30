@@ -20,6 +20,7 @@ import com.sosalerts.shaurya.sosalerts.R;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.SavedLocations;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
+import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -134,6 +135,10 @@ public class LocationsTab extends Fragment {
         Intent saveLocationIntent = new Intent(v.getContext(), GetLocationCordinatesService.class);
         saveLocationIntent.putExtra(savedLocationName,locationName);
         v.getContext().startService(saveLocationIntent);
+        Intent speakIntent = new Intent(getActivity(), ReadOut.class);
+        speakIntent.putExtra(ReadOut.textToSpeak,"If you click on a location you will be able to view that on map. In order to delete a saved location you need to press it for a longer duration of time.");
+        speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+        getActivity().startService(speakIntent);
      }
 }
 

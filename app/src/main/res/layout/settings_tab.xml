@@ -46,7 +46,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginLeft="5dp"
         android:textSize="14dp"
-        android:text="Reply for 'Where are you' sms"
+        android:text="Reply for 'Where are you' / 'wru' sms"
         />
     <Spinner
         android:id="@+id/powerbuttonCount"
@@ -93,6 +93,29 @@
         android:layout_marginLeft="6dp"
         android:textSize="14dp"
         android:text="Safe zone (around saved locations) in meters"
+        />
+    <Spinner
+        android:id="@+id/locationTrackerFrequency"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_below="@id/safeZoneBoundry"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="195dp"
+        android:entries="@array/locationTrackerFrequency_array"
+        android:prompt="@string/power_button_prompt"/>
+    <TextView
+        android:id="@+id/locationTrackerFrequency_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/locationTrackerFrequency"
+        android:layout_below="@id/safeZoneBoundry_text"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="6dp"
+        android:textSize="14dp"
+        android:text="Auto updates for the saved locations"
         />
 
 </RelativeLayout>

@@ -88,8 +88,10 @@ public class FetchAddressIntentService extends IntentService{
         String originator = intent.getStringExtra(MainActivity.orignationActivityName);
         String phonmeNo = intent.getStringExtra(IncomingSms.phoneNo);
         List<Address> addresses = null;
+        String cordinatesStr = "Cordinates Not availabe";
         if(null != cordinates){
-            Log.e(fileName, "Address service" + cordinates.getLatitude() +" --- "+cordinates.getLongitude() +" ---"+ originator +" --"+ phonmeNo);
+            cordinatesStr = cordinates.getLatitude() +","+cordinates.getLongitude();
+            Log.e(fileName, "Address service" + cordinatesStr +" ---"+ originator +" --"+ phonmeNo);
             try {
                 addresses = geocoder.getFromLocation(
                         cordinates.getLatitude(),
@@ -118,7 +120,7 @@ public class FetchAddressIntentService extends IntentService{
                 //errorMessage = getString(R.string.no_address_found);
                 Log.e(fileName, "no_address_found");
             }
-            deliverResultToReceiver(intent,FAILURE_RESULT, "Address not found. ","", "",originator,phonmeNo,emergencyContacts);
+            deliverResultToReceiver(intent,FAILURE_RESULT, cordinatesStr,cordinatesStr, "",originator,phonmeNo,emergencyContacts);
         } else {
             Address address = addresses.get(0);
 
@@ -130,11 +132,10 @@ public class FetchAddressIntentService extends IntentService{
                 addressFragments.add(address.getAddressLine(i));
 
             }
-
+            Storage.storeOrGetCountryCode(getApplicationContext(),address.getCountryCode());
             deliverResultToReceiver(intent,SUCCESS_RESULT,
                     TextUtils.join(System.getProperty("line.separator"),
-                            addressFragments),""+cordinates.getLatitude()+","+
-                            cordinates.getLongitude(), address.getCountryCode(),originator,phonmeNo,emergencyContacts);
+                            addressFragments),""+cordinatesStr, address.getCountryCode(),originator,phonmeNo,emergencyContacts);
         }
     }
     @Override

@@ -13,6 +13,8 @@ import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,10 +31,14 @@ public class Storage {
     public static final String settingsLocationAutoUpdates = "settingsLocationAutoUpdates";
     public static final String settingsreplyToWhereAreYou = "settingsreplyToWhereAreYou";
     public static final String settingsSafeZoneBoundry = "settingsSafeZoneBoundry";
+    public static final String settingsLocationTrackerFrequency = "settingsLocationTrackerFrequency";
     public static final String settingsPowerButtonCount = "settingsPowerButtonCount";
+    public static final String countryCodeLocation  = "countryCodeLocation";
     private static final String dbName = "activity.getStringR.string.saved_location_db";
     public static final int settingsSafeZoneBoundryDefault = 200;
     public static final int settingsPowerButtonCountDefault = 5;
+    public static  final String settingsLocationTrackerFrequencyDefault = "All Days";
+    private static Calendar cal = Calendar.getInstance();
 
     private static final String fileName = Storage.class.getSimpleName();
 
@@ -140,5 +146,35 @@ public class Storage {
         }
 
         return aPhoneNo;
+    }
+    public static boolean isLocationTrackerOn( Context activity){
+        SharedPreferences sharedPref = activity.getSharedPreferences(dbName+settingsLocationAutoUpdates,activity.MODE_PRIVATE);
+        String frequency =  sharedPref.getString(settingsLocationAutoUpdates, null);
+        if (frequency == null || frequency.equalsIgnoreCase("off")){
+            return false;
+        }else {
+            if (frequency.equalsIgnoreCase("Week days")){
+                Date today = new Date();
+                cal.setTime(today);
+                if (cal.get(Calendar.DAY_OF_WEEK) >=Calendar.MONDAY && cal.get(Calendar.DAY_OF_WEEK)<=Calendar.FRIDAY){
+                    return true;
+                }else {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    public static String storeOrGetCountryCode(Context activity, String countryCode){
+       SharedPreferences sharedPref = activity.getSharedPreferences(dbName+countryCodeLocation,activity.MODE_PRIVATE);
+        if(null != countryCode){
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.clear();
+            editor.putString(countryCodeLocation,countryCode);
+            editor.commit();
+            return null;
+        }else {
+            return sharedPref.getString(countryCodeLocation, "US");
+        }
     }
 }

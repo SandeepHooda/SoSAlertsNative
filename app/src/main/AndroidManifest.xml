@@ -39,7 +39,7 @@
         </service>
 
 
-        <service android:name=".services.sms.ReadOut" android:exported="false">
+        <service android:name=".services.util.ReadOut" android:exported="false">
         </service>
         <service android:name=".services.powerbutton.LockService" >
             <intent-filter>

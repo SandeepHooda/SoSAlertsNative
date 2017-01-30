@@ -28,6 +28,7 @@ public class SettingsTab extends Fragment {
     public static boolean replyToWhereAreYouSettings = false;
     public static int powerButtonSettings = Storage.settingsPowerButtonCountDefault;
     public static int safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
+    public static String locationTrackerFrequencySettings = Storage.settingsLocationTrackerFrequencyDefault;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -123,6 +124,32 @@ public class SettingsTab extends Fragment {
         }
 
 
+        //Location tracker frequency
+        Spinner locationTrackerFrequency = (Spinner) view.findViewById(R.id.locationTrackerFrequency);
+        locationTrackerFrequency.setBackgroundColor(Color.WHITE);
+        locationTrackerFrequency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                locationTrackerFrequencySettings = parent.getItemAtPosition(pos).toString();
+                Storage.storeinDB(Storage.settingsLocationTrackerFrequency,locationTrackerFrequencySettings,getActivity());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent){}
+        });
+        locationTrackerFrequencySettings = Storage.getFromDB(Storage.settingsLocationTrackerFrequency,getActivity());
+        if (null == locationTrackerFrequencySettings){
+            locationTrackerFrequencySettings = Storage.settingsLocationTrackerFrequencyDefault;
+        }
+
+        String[] freq = getActivity().getResources().getStringArray(R.array.locationTrackerFrequency_array);
+        for(int i=0; i<3; i++){
+            if(locationTrackerFrequencySettings.equals(freq[i])){
+                locationTrackerFrequency.setSelection(i);
+                 break;
+            }
+
+        }
 
 
         return view;

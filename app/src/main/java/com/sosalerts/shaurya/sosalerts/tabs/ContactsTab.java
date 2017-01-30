@@ -22,6 +22,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.R;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.SavedContacts;
+import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -136,6 +137,10 @@ public class ContactsTab extends Fragment {
         if(null != phoneNo && phoneNo.trim().length() >= 6){
             phoneNo = phoneNo.replaceAll("[^\\d()\\-+ ]", "").trim();
             Storage.storeinDBStringSet(Storage.savedContacts,phoneNo,getActivity());
+            Intent speakIntent = new Intent(getActivity(), ReadOut.class);
+            speakIntent.putExtra(ReadOut.textToSpeak,"If you click on the contact you will be able to make a phone call to that contact. In order to delete a saved contact you need to press it for a longer duration of time.");
+            speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+            getActivity().startService(speakIntent);
         }
 
     }

@@ -1,4 +1,4 @@
-package com.sosalerts.shaurya.sosalerts.services.sms;
+package com.sosalerts.shaurya.sosalerts.services.util;
 
 /**
  * Created by shaurya on 1/26/2017.
@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
 
 

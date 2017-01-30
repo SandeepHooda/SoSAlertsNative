@@ -13,7 +13,6 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.ContactsContract;
-import android.speech.tts.TextToSpeech;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,29 +20,19 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.LockService;
-import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
-import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
-import com.sosalerts.shaurya.sosalerts.services.sms.ReadOut;
-import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
 import android.Manifest;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.widget.Toast;
+
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity implements AddressResultReceiver.Receiver{
