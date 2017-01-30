@@ -43,12 +43,19 @@ public class SettingsTab extends Fragment {
             @Override
             public void onClick(View v) {
                 String country = Storage.storeOrGetCountryCode(getContext(),null);
-                String mapLink = "https://maps.google.com";
-                if ("IN".equals(country)){
-                    mapLink= "https://maps.mapmyindia.com";
+                if("IN".equals(country)){
+                    
+                    String   mapLink= "https://maps.mapmyindia.com";
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mapLink));
+                   // mapIntent.setPackage("com.mmi.MapmyIndiaMapView");
+                    startActivity(mapIntent);
+                }else {
+                    String   mapLink= "https://maps.google.com";
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
                 }
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mapLink));
-                startActivity(browserIntent);
+
             }
         });
 
