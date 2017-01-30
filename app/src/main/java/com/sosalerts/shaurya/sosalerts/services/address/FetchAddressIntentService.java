@@ -3,6 +3,7 @@ package com.sosalerts.shaurya.sosalerts.services.address;
 import android.app.IntentService;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Address;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ResultReceiver;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
@@ -63,7 +65,6 @@ public class FetchAddressIntentService extends IntentService{
 
 
         ResultReceiver rec = intent.getParcelableExtra(ADDRESS_RESULT_RECEIVER);
-
         Bundle b= new Bundle();
         b.putString(LOCATION_DATA_EXTRA_COUNTRY,countryCode);
         b.putString(LOCATION_DATA_CORDINATES,cordinates);
@@ -72,10 +73,14 @@ public class FetchAddressIntentService extends IntentService{
         b.putString(MainActivity.orignationActivityName,intentOriginator);
         b.putString(GetLocationCordinatesService.myemergencyContactsNumbers,emergencyContacts);
         rec.send(0, b);
-
+        vibrate();
         //stopSelf();
     }
 
+    private void vibrate(){
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(500);
+    }
     @Override
     protected void onHandleIntent(Intent intent) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());

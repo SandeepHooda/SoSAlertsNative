@@ -44,6 +44,7 @@ public class AddressResultReceiver extends ResultReceiver {
         mReceiver = receiver;
     }
 
+
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
 
@@ -64,11 +65,7 @@ public class AddressResultReceiver extends ResultReceiver {
         }
 
 
-        //ttobj.speak("Hello", TextToSpeech.QUEUE_FLUSH, null,utteranceId);
-        //smsManager.sendTextMessage("540", null, "I need help. I am at "+address + " Exact location: " +location, null, null);
 
-        // b.putString(LOCATION_DATA_EXTRA,cordinates);
-        //b.putString(RESULT_DATA_KEY,message);
         String myemergencyContacts =  resultData.getString(GetLocationCordinatesService.myemergencyContactsNumbers);
         Log.e(fileName, "myemergencyContacts  ="+myemergencyContacts);
         StringTokenizer tokenizer = new StringTokenizer(myemergencyContacts, ",") ;

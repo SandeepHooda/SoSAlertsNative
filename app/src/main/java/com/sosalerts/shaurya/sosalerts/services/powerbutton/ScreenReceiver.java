@@ -21,6 +21,7 @@ import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
 import java.util.Date;
+import java.util.List;
 
 public class ScreenReceiver extends BroadcastReceiver {
 
@@ -49,22 +50,23 @@ public class ScreenReceiver extends BroadcastReceiver {
                 if (powerButtonPressCount >= triggerAlertAfterCount) {
                     powerButtonPressCount = 0;
 
-                    //call a phone
-                    Intent phoneIntent = new Intent(Intent.ACTION_CALL);
-                    phoneIntent.setData(Uri.parse("tel:9216411835"));
-                    phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                    List<String> contactList = Storage.getEmergencyContactsList(context);
+                    if (null != contactList && contactList.size() >0){
+                        String firstPhone = contactList.get(0);
 
-                        return;
+                        //call a phone
+                        Intent phoneIntent = new Intent(Intent.ACTION_CALL);
+                        phoneIntent.setData(Uri.parse("tel:"+Storage.getOnlyNumbers(firstPhone)));
+                        phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+
+                            return;
+                        }
+                        context.startActivity(phoneIntent);
+
                     }
-                    //context.startActivity(phoneIntent);
 
                     //SMS to all
-                   /* Intent mainActivityIntent = new Intent(context, MainActivity.class);
-                    mainActivityIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
-                    mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Log.e(fileName, "Staring main activity with danger flag");
-                    context.startActivity(mainActivityIntent);*/
                     String myemergencyContacts = Storage.getEmergencyContacts(context);
                     Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
                     String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_AllContact;

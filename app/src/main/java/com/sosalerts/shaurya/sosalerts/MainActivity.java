@@ -184,8 +184,7 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
 
-        Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(500);
+
         Log.e(fileName, "Main activity got the result "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
 
     }
