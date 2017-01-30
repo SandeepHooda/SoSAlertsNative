@@ -4,34 +4,20 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <ToggleButton
-        android:id="@+id/locationAutoUpdate"
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/showMeOnMap"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:textOff="Off"
-        android:textOn="On" />
-    <TextView
-        android:id="@+id/locationAutoUpdate_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/locationAutoUpdate"
-        android:textColor="@android:color/white"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="5dp"
-        android:textSize="14dp"
-        android:text="Auto updates for the saved locations"
-        />
+        android:layout_alignParentRight="true"
+        android:text="@string/showMeOnMap" />
+
     <ToggleButton
         android:id="@+id/replyToWhereAreYou"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_below="@id/locationAutoUpdate"
+        android:layout_below="@id/showMeOnMap"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="45dp"
         android:textOff="Off"
@@ -41,9 +27,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/replyToWhereAreYou"
-        android:layout_below="@id/locationAutoUpdate_text"
+        android:layout_below="@id/showMeOnMap"
         android:textColor="@android:color/white"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:layout_marginLeft="5dp"
         android:textSize="14dp"
         android:text="Reply for 'Where are you' / 'wru' sms"
@@ -64,9 +50,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/powerbuttonCount"
-        android:layout_below="@id/locationAutoUpdate_text"
+        android:layout_below="@id/replyToWhereAreYou"
         android:textColor="@android:color/white"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="10dp"
         android:layout_marginLeft="6dp"
         android:textSize="14dp"
         android:text="Time power button press for danger signal"

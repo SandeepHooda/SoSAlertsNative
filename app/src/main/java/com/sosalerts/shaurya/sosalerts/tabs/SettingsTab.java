@@ -1,5 +1,7 @@
 package com.sosalerts.shaurya.sosalerts.tabs;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -7,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -24,7 +27,6 @@ public class SettingsTab extends Fragment {
     View view = null;
     ListView listView ;
     public static String actionName = "SettingsTab";
-    public static boolean locationAutoUpdatesSettings = false;
     public static boolean replyToWhereAreYouSettings = false;
     public static int powerButtonSettings = Storage.settingsPowerButtonCountDefault;
     public static int safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
@@ -35,18 +37,21 @@ public class SettingsTab extends Fragment {
         view =  inflater.inflate(R.layout.settings_tab, container, false);
 
         //Auto updates for saved locations
-        ToggleButton locationAutoUpdate = (ToggleButton) view.findViewById(R.id.locationAutoUpdate);
-        locationAutoUpdate.setHintTextColor(Color.WHITE);
-        locationAutoUpdate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.e(fileName, "getSavedLocations  "+isChecked +" "+buttonView.getText());
-                locationAutoUpdatesSettings = isChecked;
-                Storage.storeinDB(Storage.settingsLocationAutoUpdates,""+isChecked,getActivity());
+        Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
 
+        showMeOnMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String country = Storage.storeOrGetCountryCode(getContext(),null);
+                String mapLink = "https://maps.google.com";
+                if ("IN".equals(country)){
+                    mapLink= "https://maps.mapmyindia.com";
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mapLink));
+                startActivity(browserIntent);
             }
         });
-        locationAutoUpdatesSettings = Boolean.parseBoolean(Storage.getFromDB(Storage.settingsLocationAutoUpdates,getActivity()));
-        locationAutoUpdate.setChecked(locationAutoUpdatesSettings);
+
 
         //Auto updates for replyToWhereAreYouSettings
         ToggleButton replyToWhereAreYou = (ToggleButton) view.findViewById(R.id.replyToWhereAreYou);

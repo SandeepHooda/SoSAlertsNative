@@ -3,6 +3,7 @@
     <string name="location_name">LocationName</string>
     <string name="location_name_hint">Where are you right now?</string>
     <string name="save_location">Save</string>
+    <string name="showMeOnMap">Show my location</string>
     <string name="save_contact">Add</string>
     <string name="conact_phone_hint">Emergency contact no</string>
     <string name="saved_location_db">com.sosalerts.shaurya.sosalerts_saved_location_db</string>
