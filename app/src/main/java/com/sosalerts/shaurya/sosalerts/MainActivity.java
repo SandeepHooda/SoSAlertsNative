@@ -21,9 +21,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.LockService;
+import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
@@ -32,6 +34,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -87,11 +90,22 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
             checkPermissions();
             readContacts();
             startService(new Intent(getApplicationContext(), LockService.class));//Power button service
+            checkSavedcontacts();
         }
 
     }
 
 
+    private void checkSavedcontacts(){
+        List<String> contacts = Storage.getEmergencyContactsList(this);
+        if(null == contacts || contacts.size() ==0){
+            Intent speakIntent = new Intent(this, ReadOut.class);
+            speakIntent.putExtra(ReadOut.textToSpeak,"Please enter atleast one emergency contact phone number from contacts tab.");
+            speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+            startService(speakIntent);
+        }
+
+    }
 
     private void checkPermissions(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)     != PackageManager.PERMISSION_GRANTED) {
