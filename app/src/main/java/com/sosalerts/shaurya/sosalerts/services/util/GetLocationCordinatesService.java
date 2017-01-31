@@ -133,20 +133,19 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     private void getLocation() {
         Log.e(fileName, " display location ");
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
 
             return;
         }
-        try {
+        /*try {
             Thread.sleep(1000); //So that location is available
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
 
-        mLastLocation = LocationServices.FusedLocationApi
-                .getLastLocation(mGoogleApiClient);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (null != mLastLocation){
-            processLocationResults();
+            processLocationResults(false);
         }else {
             LocationRequest mLocationRequest = new LocationRequest();
             mLocationRequest.setNumUpdates(1);
@@ -161,10 +160,19 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
-        processLocationResults();
+        processLocationResults(true);
     }
 
-    private void processLocationResults(){
+    private void processLocationResults(boolean fromLocationUpdates){
+
+
+        if (mGoogleApiClient.isConnected()) {
+            if(fromLocationUpdates){
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+            }
+            mGoogleApiClient.disconnect();
+
+        }
         Log.e(fileName, " mLastLocation "+mLastLocation);
 
         String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);

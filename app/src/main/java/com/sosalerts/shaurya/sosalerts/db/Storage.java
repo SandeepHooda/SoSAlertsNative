@@ -150,10 +150,10 @@ public class Storage {
     public static boolean isLocationTrackerOn( Context activity){
         SharedPreferences sharedPref = activity.getSharedPreferences(dbName+settingsLocationAutoUpdates,activity.MODE_PRIVATE);
         String frequency =  sharedPref.getString(settingsLocationAutoUpdates, null);
-        if (frequency == null || frequency.equalsIgnoreCase("off")){
+        if ( "off".equalsIgnoreCase(frequency)){
             return false;
         }else {
-            if (frequency.equalsIgnoreCase("Week days")){
+            if ("Week days".equalsIgnoreCase(frequency)){
                 Date today = new Date();
                 cal.setTime(today);
                 if (cal.get(Calendar.DAY_OF_WEEK) >=Calendar.MONDAY && cal.get(Calendar.DAY_OF_WEEK)<=Calendar.FRIDAY){
