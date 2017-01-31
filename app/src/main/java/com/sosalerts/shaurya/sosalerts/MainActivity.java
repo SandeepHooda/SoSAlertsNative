@@ -145,6 +145,9 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
         }
 
 
+        /*Intent in = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(in);*/
     }
 
 

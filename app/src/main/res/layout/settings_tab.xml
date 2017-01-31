@@ -103,5 +103,28 @@
         android:textSize="14dp"
         android:text="Auto updates for the saved locations"
         />
+    <ToggleButton
+        android:id="@+id/useAndroidLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_below="@id/locationTrackerFrequency"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="235dp"
+        android:textOff="Off"
+        android:textOn="On" />
+    <TextView
+        android:id="@+id/useAndroidLocation_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/locationTrackerFrequency"
+        android:layout_below="@id/locationTrackerFrequency_text"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="5dp"
+        android:textSize="14dp"
+        android:text="Use android location API"
+        />
 
 </RelativeLayout>

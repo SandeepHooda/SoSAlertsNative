@@ -11,6 +11,7 @@ import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -32,9 +33,9 @@ public class LocationTrackerIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        int safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
+        double safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
         try{
-            safeZoneBoundrySettings = Integer.parseInt(Storage.getFromDB(Storage.settingsSafeZoneBoundry,this));
+            safeZoneBoundrySettings = Double.parseDouble(Storage.getFromDB(Storage.settingsSafeZoneBoundry,this));
         }catch (Exception e){
             safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
         }
@@ -62,12 +63,18 @@ public class LocationTrackerIntentService extends IntentService {
                 }
                 double distance = distFrom(latitude,longitude,Double.parseDouble(locations[0]), Double.parseDouble(locations[1]));
 
+                Storage.storeinDB(Storage.lastKnownLocationDistance, " Dis: "+distance+" name "+locationName,this);
+                String distanceStr = ""+distance;
+                if(distanceStr != null && distanceStr.length() > 6){
+                    distanceStr = distanceStr.substring(0,5);
+                }
 
                 if (distance <safeZoneBoundrySettings){
                     currentLocation = locationName;
+                    Log.e(fileName, "In safe location : "+distance+ " safeZoneBoundrySettings "+safeZoneBoundrySettings+ " locationName "+locationName);
                     break;
                 }else {
-                    currentLocation = unknownLocation;
+                   currentLocation = unknownLocation;
                 }
             }
 

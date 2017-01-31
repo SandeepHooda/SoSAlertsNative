@@ -28,8 +28,9 @@ public class SettingsTab extends Fragment {
     ListView listView ;
     public static String actionName = "SettingsTab";
     public static boolean replyToWhereAreYouSettings = false;
+    public static boolean useAndroidLocationSettings = false;
     public static int powerButtonSettings = Storage.settingsPowerButtonCountDefault;
-    public static int safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
+    public static double safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
     public static String locationTrackerFrequencySettings = Storage.settingsLocationTrackerFrequencyDefault;
 
     @Override
@@ -38,23 +39,20 @@ public class SettingsTab extends Fragment {
 
         //Auto updates for saved locations
         Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
+        String location = Storage.getFromDB(Storage.lastKnownLocationDistance,getActivity())+"\n"+ Storage.getFromDB(Storage.lastKnownLocationTime,getActivity());
 
+        if(null != location && location.indexOf("@") >0){
+            location = location.substring(location.indexOf("@")+1);
+        }
+        showMeOnMap.setText(location);
         showMeOnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String country = Storage.storeOrGetCountryCode(getContext(),null);
-                if("IN".equals(country)){
-                    
-                    String   mapLink= "https://maps.mapmyindia.com";
-                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mapLink));
-                   // mapIntent.setPackage("com.mmi.MapmyIndiaMapView");
-                    startActivity(mapIntent);
-                }else {
-                    String   mapLink= "https://maps.google.com";
-                    Intent mapIntent = new Intent(Intent.ACTION_VIEW);
-                    mapIntent.setPackage("com.google.android.apps.maps");
-                    startActivity(mapIntent);
-                }
+                String   mapLink= "https://www.google.com/maps/place/@"+Storage.getFromDB(Storage.lastKnownLocation,getActivity());;
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW,Uri.parse(mapLink));
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
+
 
             }
         });
@@ -162,6 +160,20 @@ public class SettingsTab extends Fragment {
             }
 
         }
+
+        //use android location API
+        ToggleButton useAndroidLocation = (ToggleButton) view.findViewById(R.id.useAndroidLocation);
+        useAndroidLocation.setHintTextColor(Color.WHITE);
+        useAndroidLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.e(fileName, "useAndroidLocation  "+isChecked +" "+buttonView.getText());
+                useAndroidLocationSettings = isChecked;
+                Storage.storeinDB(Storage.useAndroidLocation,""+isChecked,getActivity());
+
+            }
+        });
+        useAndroidLocationSettings = Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation,getActivity()));
+        useAndroidLocation.setChecked(useAndroidLocationSettings);
 
 
         return view;

@@ -26,6 +26,10 @@ import java.util.StringTokenizer;
 
 public class Storage {
     public static final String savedLocations = "SavedLocations";
+    public static final String useAndroidLocation = "useAndroidLocation";
+    public static final String lastKnownLocation = "lastKnownLocation";
+    public static final String lastKnownLocationTime = "lastKnownLocationTime";
+    public static final String lastKnownLocationDistance = "lastKnownLocationDistance";
     public static final String currentAction = "currentAction";
     public static final String savedContacts = "savedContacts";
     public static final String settingsLocationAutoUpdates = "settingsLocationAutoUpdates";
@@ -35,7 +39,7 @@ public class Storage {
     public static final String settingsPowerButtonCount = "settingsPowerButtonCount";
     public static final String countryCodeLocation  = "countryCodeLocation";
     private static final String dbName = "activity.getStringR.string.saved_location_db";
-    public static final int settingsSafeZoneBoundryDefault = 200;
+    public static final double settingsSafeZoneBoundryDefault = 200;
     public static final int settingsPowerButtonCountDefault = 5;
     public static  final String settingsLocationTrackerFrequencyDefault = "All Days";
     private static Calendar cal = Calendar.getInstance();
@@ -44,6 +48,13 @@ public class Storage {
 
     public static void storeinDB(String itemName, String itemValue, FragmentActivity activity){
         SharedPreferences sharedPref = activity.getSharedPreferences(dbName+itemName,activity.MODE_PRIVATE);
+        store(itemName, itemValue, sharedPref);
+    }
+    public static void storeinDB(String itemName, String itemValue, Context activity){
+        SharedPreferences sharedPref = activity.getSharedPreferences(dbName+itemName,activity.MODE_PRIVATE);
+        store(itemName, itemValue, sharedPref);
+    }
+    private static void store(String itemName, String itemValue, SharedPreferences sharedPref){
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.clear();
         editor.putString(itemName,itemValue);
