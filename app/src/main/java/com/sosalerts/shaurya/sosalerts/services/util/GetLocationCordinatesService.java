@@ -165,8 +165,6 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     @Override
     public void onConnected(Bundle bundle) {
         getLocation();
-        Log.e(fileName, " Location using GPS enabled ? ");
-
 
     }
 
@@ -195,15 +193,16 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             e.printStackTrace();
         }*/
 
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        mLastLocation = null;//LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (null != mLastLocation) {
             processLocationResults(false);
         } else {
             LocationRequest mLocationRequest = new LocationRequest();
             mLocationRequest.setNumUpdates(1);
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            mLocationRequest.setExpirationDuration(10 * 1000);
-            mLocationRequest.setFastestInterval(1000);
+            mLocationRequest.setExpirationDuration(1000);
+           // mLocationRequest.setFastestInterval(500);
+           // mLocationRequest.setInterval(500);
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, mLocationRequest, this);
         }
