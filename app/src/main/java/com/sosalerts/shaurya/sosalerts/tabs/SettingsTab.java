@@ -63,7 +63,7 @@ public class SettingsTab extends Fragment {
         replyToWhereAreYou.setHintTextColor(Color.WHITE);
         replyToWhereAreYou.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.e(fileName, "replyToWhereAreYou  "+isChecked +" "+buttonView.getText());
+                Log.e(fileName, "replyToWhereAreYou  "+isChecked );
                 replyToWhereAreYouSettings = isChecked;
                 Storage.storeinDB(Storage.settingsreplyToWhereAreYou,""+isChecked,getActivity());
 
@@ -115,7 +115,7 @@ public class SettingsTab extends Fragment {
         });
 
         try{
-            safeZoneBoundrySettings = Integer.parseInt(Storage.getFromDB(Storage.settingsSafeZoneBoundry,getActivity()));
+            safeZoneBoundrySettings = Double.parseDouble(Storage.getFromDB(Storage.settingsSafeZoneBoundry,getActivity()));
         }catch (Exception e){
             safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
         }
@@ -166,7 +166,7 @@ public class SettingsTab extends Fragment {
         useAndroidLocation.setHintTextColor(Color.WHITE);
         useAndroidLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.e(fileName, "useAndroidLocation  "+isChecked +" "+buttonView.getText());
+                Log.e(fileName, "useAndroidLocation  "+isChecked);
                 useAndroidLocationSettings = isChecked;
                 Storage.storeinDB(Storage.useAndroidLocation,""+isChecked,getActivity());
 

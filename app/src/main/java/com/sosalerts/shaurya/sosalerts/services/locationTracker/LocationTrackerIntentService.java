@@ -63,11 +63,15 @@ public class LocationTrackerIntentService extends IntentService {
                 }
                 double distance = distFrom(latitude,longitude,Double.parseDouble(locations[0]), Double.parseDouble(locations[1]));
 
-                Storage.storeinDB(Storage.lastKnownLocationDistance, " Dis: "+distance+" name "+locationName,this);
+                Storage.storeinDB(Storage.lastKnownLocationDistance, " Dis: "+distance+" accuracy "+mLastLocation.getAccuracy(),this);
                 String distanceStr = ""+distance;
                 if(distanceStr != null && distanceStr.length() > 6){
                     distanceStr = distanceStr.substring(0,5);
                 }
+                /*Intent speakIntent = new Intent(this, ReadOut.class);
+                speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" accuracy "+mLastLocation.getAccuracy());
+                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                startService(speakIntent);*/
 
                 if (distance <safeZoneBoundrySettings){
                     currentLocation = locationName;

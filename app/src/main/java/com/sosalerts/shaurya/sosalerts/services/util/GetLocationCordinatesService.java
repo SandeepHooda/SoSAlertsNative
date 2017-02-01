@@ -42,7 +42,15 @@ import java.util.Locale;
 public class GetLocationCordinatesService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
     // Google client to interact with Google API
+    private static boolean useGoogleApi = false;
     private GoogleApiClient mGoogleApiClient;
+    private LocationManager locManager;
+    private int locationSource = 0;
+    private int getLocationSourceFusedApi = 0;
+    private int getLocationSourceFusedApiUpdateListner = 1;
+    private int getLocationSourceLocationManager = 2;
+    private int getLocationSourceLocationManagerUpdateListner = 3;
+    private android.location.LocationListener locManagerLocationListener;
     private final String fileName = this.getClass().getSimpleName();
     private Location mLastLocation;
     public static final String PACKAGE_NAME = "com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService";
@@ -84,47 +92,57 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     @Override
     protected void onHandleIntent(Intent intent) {
         this.intent = intent;
-       if(Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation,this))){
-           Log.e(fileName, "Getting location : Using google location via cellular network - New");
-           getLocationViaNetwork();
+        if (Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation, this))) {
+            useGoogleApi = false;
+        }
+        if(!useGoogleApi){
+            Log.e(fileName, "Getting location : Using google location via cellular network - New");
+            getLocationViaNetwork();
 
-       }else {
-           userLocationFacade();
-           Log.e(fileName, "Getting location : Using google service  - BAU");
-       }
+        } else {
+            userLocationFacade();
+            Log.e(fileName, "Getting location : Using google service  - BAU");
+        }
 
     }
 
-    private void getLocationViaNetwork(){
-        LocationManager locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+    private void getLocationViaNetwork() {
+        locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
         }
 
-        android.location.LocationListener locationListener = new android.location.LocationListener() {
+        locManagerLocationListener = new android.location.LocationListener() {
             public void onLocationChanged(Location location) {
                 Log.e(fileName, " Location listner called !!!!!!!");
+                locationSource = getLocationSourceLocationManagerUpdateListner;
                 mLastLocation = location;
-                processLocationResults(false);
+                processLocationResults();
             }
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
 
-            public void onProviderEnabled(String provider) {}
+            public void onProviderEnabled(String provider) {
+            }
 
-            public void onProviderDisabled(String provider) {}
+            public void onProviderDisabled(String provider) {
+            }
         };
 
-        Location location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        /*Location location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         if(null != location){
+        locationSource = getLocationSourceLocationManager;
             Log.e(fileName, " got location via network");
             mLastLocation = location;
             processLocationResults(false);
         }else{
             Log.e(fileName, " No location via network");
-        }
-       // locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+        }*/
+
+        locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 200, locManagerLocationListener);
+        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 200, locManagerLocationListener);
 
     }
 
@@ -195,14 +213,15 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
         mLastLocation = null;//LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (null != mLastLocation) {
-            processLocationResults(false);
+            locationSource = getLocationSourceFusedApi;
+            processLocationResults();
         } else {
             LocationRequest mLocationRequest = new LocationRequest();
             mLocationRequest.setNumUpdates(1);
             mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             mLocationRequest.setExpirationDuration(1000);
-           // mLocationRequest.setFastestInterval(500);
-           // mLocationRequest.setInterval(500);
+            // mLocationRequest.setFastestInterval(500);
+            // mLocationRequest.setInterval(500);
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, mLocationRequest, this);
         }
@@ -213,23 +232,30 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
-        processLocationResults(true);
+        locationSource = getLocationSourceFusedApiUpdateListner;
+        processLocationResults();
     }
 
-    private void processLocationResults(boolean fromLocationUpdates) {
+    private void processLocationResults() {
 
 
+        if (locationSource == getLocationSourceLocationManagerUpdateListner) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+               return;
+            }
 
-        //ocManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 1000, 100, this);
+            locManager.removeUpdates(locManagerLocationListener);
+        }
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            if(fromLocationUpdates){
+            if(locationSource == getLocationSourceFusedApiUpdateListner){
                 LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
             }
             mGoogleApiClient.disconnect();
             mGoogleApiClient = null;
 
         }
+        Log.e(fileName, " provider = "+mLastLocation.getProvider()+"  accuracy "+mLastLocation.getAccuracy());
         String location = mLastLocation.getLatitude()+","+mLastLocation.getLongitude();
         String mapLink = "https://www.google.com/maps/place/@"+location+",16z";
         Storage.storeinDB(Storage.lastKnownLocation, mapLink,this);
@@ -260,9 +286,15 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                    Storage.storeinDBStringSet(Storage.savedLocations, currentLocationName +"_"+mapLink,this);
                 }
 
-                Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
-                addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
-                startService(addLocatorIntent);
+                if(mLastLocation.getAccuracy() < 500){
+                    useGoogleApi = !useGoogleApi;
+                    Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
+                    addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
+                    startService(addLocatorIntent);
+                }else {
+                    Log.e(fileName, " Not very accurate ");
+                }
+
             }else {
                 Log.e(fileName, " Location is null !!");
             }

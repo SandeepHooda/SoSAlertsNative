@@ -124,7 +124,7 @@
         android:layout_marginTop="30dp"
         android:layout_marginLeft="5dp"
         android:textSize="14dp"
-        android:text="Use android location API"
+        android:text="Use more accurate location"
         />
 
 </RelativeLayout>
