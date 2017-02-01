@@ -115,6 +115,10 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
             }
         }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WAKE_LOCK)      != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.WAKE_LOCK}, REQUEST_LOCATION);
+        }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)      != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
             ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_SMS}, REQUEST_LOCATION);

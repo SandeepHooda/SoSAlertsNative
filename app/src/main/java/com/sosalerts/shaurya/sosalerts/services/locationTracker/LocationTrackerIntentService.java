@@ -23,7 +23,7 @@ import java.util.StringTokenizer;
 public class LocationTrackerIntentService extends IntentService {
     private static String previousLocation = null;
     private static String currentLocation = null;
-    private final String unknownLocation = "UNKNOWN";
+    private final String unknownLocation = "Unknown";
 
     private final String fileName = this.getClass().getSimpleName();
     public LocationTrackerIntentService(){
@@ -68,10 +68,13 @@ public class LocationTrackerIntentService extends IntentService {
                 if(distanceStr != null && distanceStr.length() > 6){
                     distanceStr = distanceStr.substring(0,5);
                 }
-                /*Intent speakIntent = new Intent(this, ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" accuracy "+mLastLocation.getAccuracy());
-                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                startService(speakIntent);*/
+                if (Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation, this))) {
+                    Intent speakIntent = new Intent(this, ReadOut.class);
+                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr);//+" accuracy "+mLastLocation.getAccuracy()
+                    speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                    startService(speakIntent);
+                }
+
 
                 if (distance <safeZoneBoundrySettings){
                     currentLocation = locationName;

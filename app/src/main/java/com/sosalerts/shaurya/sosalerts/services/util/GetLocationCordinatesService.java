@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -27,6 +28,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
+import com.sosalerts.shaurya.sosalerts.services.alarm.AlarmReceiver;
 import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerIntentService;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
@@ -66,6 +68,8 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
     private String whatToSpeak;
     private LocationTrackerIntentService locationReceiver;
+    PowerManager powerManager;
+    PowerManager.WakeLock wakeLock;
 
     private Intent intent;
 
@@ -91,17 +95,19 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        //powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        //wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+        //wakeLock.acquire();
         this.intent = intent;
         if (Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation, this))) {
             useGoogleApi = false;
         }
-        if(!useGoogleApi){
-            Log.e(fileName, "Getting location : Using google location via cellular network - New");
-            getLocationViaNetwork();
-
-        } else {
+        if(useGoogleApi){
             userLocationFacade();
             Log.e(fileName, "Getting location : Using google service  - BAU");
+      } else {
+            Log.e(fileName, "Getting location : Using google location via cellular network - New");
+            getLocationViaNetwork();
         }
 
     }
@@ -141,8 +147,15 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             Log.e(fileName, " No location via network");
         }*/
 
-        locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 200, locManagerLocationListener);
-        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 200, locManagerLocationListener);
+        locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locManagerLocationListener);
+        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locManagerLocationListener);
+        try {
+            Thread.sleep(5000);
+            locManager.removeUpdates(locManagerLocationListener);
+            Log.e(fileName, " Removed location listner after sleep");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -245,6 +258,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             }
 
             locManager.removeUpdates(locManagerLocationListener);
+            Log.e(fileName, " Removed location listner in result processing");
         }
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
@@ -259,7 +273,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
         String location = mLastLocation.getLatitude()+","+mLastLocation.getLongitude();
         String mapLink = "https://www.google.com/maps/place/@"+location+",16z";
         Storage.storeinDB(Storage.lastKnownLocation, mapLink,this);
-        Storage.storeinDB(Storage.lastKnownLocationTime, new Date().toString(),this);
+        Storage.storeinDB(Storage.lastKnownLocationTime, new Date(mLastLocation.getTime()).toString(),this);
         Log.e(fileName, " mLastLocation "+location);
 
         String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
@@ -300,6 +314,8 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             }
 
         }
+        //wakeLock.release();
+        AlarmReceiver.completeWakefulIntent(intent);
     }
 
     @Override

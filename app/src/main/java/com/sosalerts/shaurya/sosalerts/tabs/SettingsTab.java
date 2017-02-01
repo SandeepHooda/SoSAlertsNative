@@ -33,21 +33,35 @@ public class SettingsTab extends Fragment {
     public static double safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
     public static String locationTrackerFrequencySettings = Storage.settingsLocationTrackerFrequencyDefault;
 
+    private String getLocationButtontext(){
+        String location = Storage.getFromDB(Storage.lastKnownLocationDistance,getActivity())+"\n"+ Storage.getFromDB(Storage.lastKnownLocationTime,getActivity());
+
+        if(null != location && location.indexOf("@") >0){
+            location = location.substring(location.indexOf("@")+1);
+        }
+        return location;
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
+        showMeOnMap.setText(getLocationButtontext());
+        Log.e(fileName,"Button text update");
+
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view =  inflater.inflate(R.layout.settings_tab, container, false);
 
         //Auto updates for saved locations
         Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
-        String location = Storage.getFromDB(Storage.lastKnownLocationDistance,getActivity())+"\n"+ Storage.getFromDB(Storage.lastKnownLocationTime,getActivity());
 
-        if(null != location && location.indexOf("@") >0){
-            location = location.substring(location.indexOf("@")+1);
-        }
-        showMeOnMap.setText(location);
+        showMeOnMap.setText(getLocationButtontext());
         showMeOnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Button thisButton = (Button) view.findViewById(R.id.showMeOnMap);
+                thisButton.setText(getLocationButtontext());
                 String   mapLink= "https://www.google.com/maps/place/@"+Storage.getFromDB(Storage.lastKnownLocation,getActivity());;
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW,Uri.parse(mapLink));
                 mapIntent.setPackage("com.google.android.apps.maps");
