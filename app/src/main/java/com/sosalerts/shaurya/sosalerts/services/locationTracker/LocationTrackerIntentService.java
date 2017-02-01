@@ -68,7 +68,7 @@ public class LocationTrackerIntentService extends IntentService {
                 if(distanceStr != null && distanceStr.length() > 6){
                     distanceStr = distanceStr.substring(0,5);
                 }
-                if (Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation, this))) {
+                if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                     Intent speakIntent = new Intent(this, ReadOut.class);
                     speakIntent.putExtra(ReadOut.textToSpeak,distanceStr);//+" accuracy "+mLastLocation.getAccuracy()
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);

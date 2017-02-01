@@ -52,7 +52,8 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     private int getLocationSourceFusedApiUpdateListner = 1;
     private int getLocationSourceLocationManager = 2;
     private int getLocationSourceLocationManagerUpdateListner = 3;
-    private android.location.LocationListener locManagerLocationListener;
+    private android.location.LocationListener locManagerLocationListenerNetwork;
+    private android.location.LocationListener locManagerLocationListenerGPS;
     private final String fileName = this.getClass().getSimpleName();
     private Location mLastLocation;
     public static final String PACKAGE_NAME = "com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService";
@@ -70,6 +71,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     private LocationTrackerIntentService locationReceiver;
     PowerManager powerManager;
     PowerManager.WakeLock wakeLock;
+    LocationListener[] mLocationListeners ;
 
     private Intent intent;
 
@@ -112,14 +114,8 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
     }
 
-    private void getLocationViaNetwork() {
-        locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            return;
-        }
-
-        locManagerLocationListener = new android.location.LocationListener() {
+    private android.location.LocationListener getListner(){
+        return new android.location.LocationListener() {
             public void onLocationChanged(Location location) {
                 Log.e(fileName, " Location listner called !!!!!!!");
                 locationSource = getLocationSourceLocationManagerUpdateListner;
@@ -136,6 +132,17 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             public void onProviderDisabled(String provider) {
             }
         };
+    }
+    private void getLocationViaNetwork() {
+        locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+
+
+        locManagerLocationListenerNetwork = getListner();
+        locManagerLocationListenerGPS = getListner();
 
         /*Location location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         if(null != location){
@@ -147,11 +154,11 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             Log.e(fileName, " No location via network");
         }*/
 
-        locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locManagerLocationListener);
-        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locManagerLocationListener);
+        locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locManagerLocationListenerNetwork);
+        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locManagerLocationListenerGPS);
         try {
             Thread.sleep(5000);
-            locManager.removeUpdates(locManagerLocationListener);
+            locManager.removeUpdates(locManagerLocationListenerGPS);
             Log.e(fileName, " Removed location listner after sleep");
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -257,7 +264,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                return;
             }
 
-            locManager.removeUpdates(locManagerLocationListener);
+            locManager.removeUpdates(locManagerLocationListenerNetwork);
             Log.e(fileName, " Removed location listner in result processing");
         }
 

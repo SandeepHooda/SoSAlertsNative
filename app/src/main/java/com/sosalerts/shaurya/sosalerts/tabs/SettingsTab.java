@@ -189,6 +189,19 @@ public class SettingsTab extends Fragment {
         useAndroidLocationSettings = Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation,getActivity()));
         useAndroidLocation.setChecked(useAndroidLocationSettings);
 
+        //Speak location
+        ToggleButton speakLocation = (ToggleButton) view.findViewById(R.id.speakLocation);
+        speakLocation.setHintTextColor(Color.WHITE);
+        speakLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.e(fileName, "useAndroidLocation  "+isChecked);
+                useAndroidLocationSettings = isChecked;
+                Storage.storeinDB(Storage.speakLocation,""+isChecked,getActivity());
+
+            }
+        });
+        speakLocation.setChecked(Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getActivity())));
+
 
         return view;
     }

@@ -126,5 +126,28 @@
         android:textSize="14dp"
         android:text="Use only Android location manager"
         />
+    <ToggleButton
+        android:id="@+id/speakLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_below="@id/useAndroidLocation"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="280dp"
+        android:textOff="Off"
+        android:textOn="On" />
+    <TextView
+        android:id="@+id/speakLocation_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/speakLocation"
+        android:layout_below="@id/useAndroidLocation_text"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="5dp"
+        android:textSize="14dp"
+        android:text="Speak location"
+        />
 
 </RelativeLayout>

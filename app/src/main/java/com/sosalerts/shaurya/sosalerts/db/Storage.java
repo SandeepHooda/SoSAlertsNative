@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 
 public class Storage {
     public static final String savedLocations = "SavedLocations";
+    public static final String speakLocation = "speakLocation";
     public static final String useAndroidLocation = "useAndroidLocation";
     public static final String lastKnownLocation = "lastKnownLocation";
     public static final String lastKnownLocationTime = "lastKnownLocationTime";
