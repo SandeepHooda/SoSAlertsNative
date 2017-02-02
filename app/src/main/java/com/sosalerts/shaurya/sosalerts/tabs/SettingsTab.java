@@ -136,7 +136,7 @@ public class SettingsTab extends Fragment {
 
         if(safeZoneBoundrySettings == 1500){
             safeZoneBoundry.setSelection(6);
-        }else if(safeZoneBoundrySettings == 1500){
+        }else if(safeZoneBoundrySettings == 2000){
             safeZoneBoundry.setSelection(7);
         }else {
             for(int i=5; i<=10; i++){
