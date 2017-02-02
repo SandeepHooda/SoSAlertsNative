@@ -24,6 +24,7 @@ public class LocationTrackerIntentService extends IntentService {
     private static String previousLocation = null;
     private static String currentLocation = null;
     private final String unknownLocation = "Unknown";
+    private static Date knownLocationTimeEvent = null;
 
     private final String fileName = this.getClass().getSimpleName();
     public LocationTrackerIntentService(){
@@ -66,11 +67,11 @@ public class LocationTrackerIntentService extends IntentService {
                 Storage.storeinDB(Storage.lastKnownLocationDistance, " Dis: "+distance+" accuracy "+mLastLocation.getAccuracy(),this);
                 String distanceStr = ""+distance;
                 if(distanceStr != null && distanceStr.length() > 6){
-                    distanceStr = distanceStr.substring(0,5);
+                    distanceStr = distanceStr.substring(0,6);
                 }
                 if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                     Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr);//+" accuracy "+mLastLocation.getAccuracy()
+                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" meters from "+locationName);//+" accuracy "+mLastLocation.getAccuracy()
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
                 }
@@ -87,19 +88,24 @@ public class LocationTrackerIntentService extends IntentService {
 
             Log.e(fileName, "currentLocation  "+currentLocation +" previousLocation "+previousLocation);
             if(previousLocation != null){// So that the when app starts for the firs time we can ignore this code
-                if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
-                    Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
-                    speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                    startService(speakIntent);
-                    sendSMSToAll("Entering "+currentLocation);
-                }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
-                    Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
-                    speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                    startService(speakIntent);
-                    sendSMSToAll("Exiting "+previousLocation);
+                if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
+                    if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
+                        knownLocationTimeEvent = new Date();
+                        Intent speakIntent = new Intent(this, ReadOut.class);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
+                        speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                        startService(speakIntent);
+                        sendSMSToAll("Entering "+currentLocation);
+                    }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
+                        knownLocationTimeEvent = new Date();
+                        Intent speakIntent = new Intent(this, ReadOut.class);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
+                        speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                        startService(speakIntent);
+                        sendSMSToAll("Exiting "+previousLocation);
+                    }
                 }
+
             }
             previousLocation = currentLocation;
         }

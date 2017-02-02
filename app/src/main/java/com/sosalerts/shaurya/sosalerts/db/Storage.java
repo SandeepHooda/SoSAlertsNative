@@ -150,10 +150,9 @@ public class Storage {
 
     public static String getOnlyNumbers(String aPhoneNo){
         if(null != aPhoneNo){
-            aPhoneNo = aPhoneNo.replaceAll("[^\\d]", "").trim();
-            if (aPhoneNo.length() > 10){
-                int extra = aPhoneNo.length() -10;
-                aPhoneNo = aPhoneNo.substring(extra);
+            aPhoneNo = aPhoneNo.replaceAll("[^\\d+]", "").trim();
+            if (aPhoneNo.length() == 10){
+               aPhoneNo = "0"+aPhoneNo;
             }
         }
 

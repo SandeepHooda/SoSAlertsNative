@@ -134,18 +134,19 @@ public class SettingsTab extends Fragment {
             safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
         }
 
-        for(int i=2; i<=11; i++){
-            if(safeZoneBoundrySettings < 2000){
+        if(safeZoneBoundrySettings == 1500){
+            safeZoneBoundry.setSelection(6);
+        }else if(safeZoneBoundrySettings == 1500){
+            safeZoneBoundry.setSelection(7);
+        }else {
+            for(int i=5; i<=10; i++){
                 if(i*100 == safeZoneBoundrySettings){
-                    safeZoneBoundry.setSelection((i-2));
+                    safeZoneBoundry.setSelection(i-5);
                     break;
                 }
-
-            }else {
-                safeZoneBoundry.setSelection(9);
-                break;
             }
         }
+
 
 
         //Location tracker frequency
