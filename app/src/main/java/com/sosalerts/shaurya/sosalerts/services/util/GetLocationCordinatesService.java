@@ -59,6 +59,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     public static final String PACKAGE_NAME = "com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService";
     //public static final String ADDRESS_RESULT_RECEIVER = PACKAGE_NAME +        ".addressResultReceiver";
     public static final String LOCATION_CORDINATES = PACKAGE_NAME + ".LOCATION_CORDINATES";
+    public static final String LOCATION_CORDINATES_SOURCE = PACKAGE_NAME + ".LOCATION_CORDINATES_SOURCE";
     public static final String SAVED_LOCATIONS = PACKAGE_NAME + ".SAVED_LOCATIONS";
     public static final String GetLocationCordinatesServiceReceiver = PACKAGE_NAME + ".GetLocationCordinatesServiceReceiver";
     public static final String ChainOfDuty = PACKAGE_NAME + ".ChainOfDuty";
@@ -258,8 +259,10 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
     private void processLocationResults() {
 
+        String locationCordinatesSource = "";
 
         if (locationSource == getLocationSourceLocationManagerUpdateListner) {
+            locationCordinatesSource = " via Cell";
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
                return;
             }
@@ -269,6 +272,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
         }
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            locationCordinatesSource = " via GPS";
             if(locationSource == getLocationSourceFusedApiUpdateListner){
                 LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
             }
@@ -307,10 +311,11 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                    Storage.storeinDBStringSet(Storage.savedLocations, currentLocationName +"_"+mapLink,this);
                 }
 
-                if(mLastLocation.getAccuracy() < 500){
+                if(mLastLocation.getAccuracy() < 100){
                     useGoogleApi = !useGoogleApi;
                     Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
+                    addLocatorIntent.putExtra(LOCATION_CORDINATES_SOURCE,locationCordinatesSource);
                     startService(addLocatorIntent);
                 }else {
                     Log.e(fileName, " Not very accurate ");

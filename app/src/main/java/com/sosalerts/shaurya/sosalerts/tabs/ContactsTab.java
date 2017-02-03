@@ -67,7 +67,7 @@ public class ContactsTab extends Fragment {
             for (String aPhoneNo: savedContacts){
                 SavedContacts newContact = new SavedContacts();
                 newContact.setContactNo(aPhoneNo);
-                newContact.setContactName(MainActivity.allContacts.get(Storage.getOnlyNumbers(aPhoneNo)));
+                newContact.setContactName(MainActivity.allContacts.get(Storage.getOnlyNumbersLastTen(aPhoneNo)));
                 savedContactList.add(newContact);
 
             }

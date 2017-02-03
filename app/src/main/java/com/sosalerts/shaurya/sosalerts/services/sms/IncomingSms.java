@@ -52,15 +52,18 @@ public class IncomingSms extends BroadcastReceiver {
                         message = message.replaceAll("\\?","").replaceAll("\\.","");
                     }
                     if("fmp".equals(message) || "find my phone".equals(message)){
-                        AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-                        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+                        if (Boolean.parseBoolean(Storage.getFromDB(Storage.replyToFindMyPhone,context))){
+                            AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+                            int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
 
-                        audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 100, AudioManager.FLAG_SHOW_UI + AudioManager.FLAG_PLAY_SOUND);
-                        Intent speakIntent = new Intent(context, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Here I am");
-                        speakIntent.putExtra(MainActivity.orignationActivityName,findMyPhone);
-                        context.startService(speakIntent);
+                            audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 100, AudioManager.FLAG_SHOW_UI + AudioManager.FLAG_PLAY_SOUND);
+                            Intent speakIntent = new Intent(context, ReadOut.class);
+                            speakIntent.putExtra(ReadOut.textToSpeak,"Here I am");
+                            speakIntent.putExtra(MainActivity.orignationActivityName,findMyPhone);
+                            context.startService(speakIntent);
+                        }
+
                     }
                     if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,context))){
                         if("wru".equals(message) || "where are you".equals(message)){

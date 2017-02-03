@@ -21,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.storage.StorageTask;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.address.FetchAddressIntentService;
@@ -216,11 +217,7 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
 
             String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             if(null != phoneNumber){
-                phoneNumber = phoneNumber.replaceAll("[^\\d]", "").trim();
-                if (phoneNumber.length() > 10){
-                    int extra = phoneNumber.length() -10;
-                    phoneNumber = phoneNumber.substring(extra);
-                }
+                phoneNumber = Storage.getOnlyNumbersLastTen(phoneNumber.trim());
                 //Log.e(fileName, "name :"+name+" phoneNumber "+phoneNumber);
                 allContacts.put(phoneNumber,name);
             }

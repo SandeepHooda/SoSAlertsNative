@@ -40,18 +40,21 @@ public class LocationTrackerIntentService extends IntentService {
         }catch (Exception e){
             safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
         }
+
         Location mLastLocation = intent.getParcelableExtra(GetLocationCordinatesService.LOCATION_CORDINATES);
         double latitude = mLastLocation.getLatitude();
         double longitude = mLastLocation.getLongitude();
         Log.e(fileName, "location In location tracker ::::: "+latitude+ " --- "+longitude);
         String location = latitude+","+longitude;
         Set<String> savedLocation = Storage.getFromDBDBStringSet(Storage.savedLocations,this);
+        String locationLink = "";
         if (savedLocation != null && savedLocation.size() > 0) {
 
             for (String alocation : savedLocation) {
                 int seperatorLocation = alocation.indexOf("_");
                 String locationName = alocation.substring(0, seperatorLocation);
                 String link = alocation.substring(seperatorLocation + 1);
+                locationLink = link;
                 link = link.substring(link.indexOf("@")+1);
 
                 StringTokenizer tokenizer = new StringTokenizer(link, ",") ;
@@ -66,12 +69,12 @@ public class LocationTrackerIntentService extends IntentService {
 
                 Storage.storeinDB(Storage.lastKnownLocationDistance, " Dis: "+distance+" accuracy "+mLastLocation.getAccuracy(),this);
                 String distanceStr = ""+distance;
-                if(distanceStr != null && distanceStr.length() > 6){
-                    distanceStr = distanceStr.substring(0,6);
+                if(distanceStr.indexOf(".") >= 0){
+                    distanceStr = distanceStr.substring(0,distanceStr.indexOf("."));
                 }
                 if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                     Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" meters from "+locationName);//+" accuracy "+mLastLocation.getAccuracy()
+                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" meters from "+locationName +" calculated "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));//+" accuracy "+mLastLocation.getAccuracy()
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
                 }
@@ -95,14 +98,14 @@ public class LocationTrackerIntentService extends IntentService {
                         speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
-                        sendSMSToAll("Entering "+currentLocation);
+                        sendSMSToAll("Entering "+currentLocation+" "+locationLink );
                     }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);
                         speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
-                        sendSMSToAll("Exiting "+previousLocation);
+                        sendSMSToAll("Exiting "+previousLocation+" "+locationLink);
                     }
                 }
 

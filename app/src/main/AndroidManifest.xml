@@ -27,6 +27,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity android:name=".services.util.MyDialog" android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
@@ -49,6 +50,11 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </service>
+        <receiver android:name=".services.util.BootReciever">
+            <intent-filter >
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
         <!-- No filter for FetchAddressIntentService: only app can call this service -->
         <service
             android:name=".services.address.FetchAddressIntentService"

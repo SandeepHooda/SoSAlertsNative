@@ -35,12 +35,14 @@ public class Storage {
     public static final String savedContacts = "savedContacts";
     public static final String settingsLocationAutoUpdates = "settingsLocationAutoUpdates";
     public static final String settingsreplyToWhereAreYou = "settingsreplyToWhereAreYou";
+    public static final String replyToFindMyPhone = "replyToFindMyPhone";
+
     public static final String settingsSafeZoneBoundry = "settingsSafeZoneBoundry";
     public static final String settingsLocationTrackerFrequency = "settingsLocationTrackerFrequency";
     public static final String settingsPowerButtonCount = "settingsPowerButtonCount";
     public static final String countryCodeLocation  = "countryCodeLocation";
     private static final String dbName = "activity.getStringR.string.saved_location_db";
-    public static final double settingsSafeZoneBoundryDefault = 200;
+    public static  double settingsSafeZoneBoundryDefault = 500;
     public static final int settingsPowerButtonCountDefault = 5;
     public static  final String settingsLocationTrackerFrequencyDefault = "All Days";
     private static Calendar cal = Calendar.getInstance();
@@ -158,6 +160,18 @@ public class Storage {
 
         return aPhoneNo;
     }
+    public static String getOnlyNumbersLastTen(String aPhoneNo){
+        if(null != aPhoneNo){
+            aPhoneNo = aPhoneNo.replaceAll("[^\\d]", "").trim();
+            if (aPhoneNo.length() > 10){
+                int extra = aPhoneNo.length() -10;
+                aPhoneNo = aPhoneNo.substring(extra);
+            }
+        }
+
+        return aPhoneNo;
+    }
+
     public static boolean isLocationTrackerOn( Context activity){
         SharedPreferences sharedPref = activity.getSharedPreferences(dbName+settingsLocationAutoUpdates,activity.MODE_PRIVATE);
         String frequency =  sharedPref.getString(settingsLocationAutoUpdates, null);

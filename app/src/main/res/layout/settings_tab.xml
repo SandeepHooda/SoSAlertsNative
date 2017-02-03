@@ -4,12 +4,27 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/showMeOnMap"
-        android:layout_width="match_parent"
+    <ToggleButton
+        android:id="@+id/replyToFindMyPhone"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:text="@string/showMeOnMap" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:textOff="Off"
+        android:textOn="On" />
+    <TextView
+        android:id="@+id/replyToFindMyPhone_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/replyToFindMyPhone"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="5dp"
+        android:textSize="14dp"
+        android:text="Reply for 'Find my phone' / 'fmp' sms"
+        />
 
     <ToggleButton
         android:id="@+id/replyToWhereAreYou"
@@ -17,7 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_below="@id/showMeOnMap"
+        android:layout_below="@id/replyToFindMyPhone"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="45dp"
         android:textOff="Off"
@@ -27,9 +42,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/replyToWhereAreYou"
-        android:layout_below="@id/showMeOnMap"
+        android:layout_below="@id/replyToFindMyPhone_text"
         android:textColor="@android:color/white"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="25dp"
         android:layout_marginLeft="5dp"
         android:textSize="14dp"
         android:text="Reply for 'Where are you' / 'wru' sms"

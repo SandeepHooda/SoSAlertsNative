@@ -44,32 +44,30 @@ public class SettingsTab extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
+        /*Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
         showMeOnMap.setText(getLocationButtontext());
-        Log.e(fileName,"Button text update");
+        Log.e(fileName,"Button text update");*/
 
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view =  inflater.inflate(R.layout.settings_tab, container, false);
 
-        //Auto updates for saved locations
-        Button showMeOnMap = (Button) view.findViewById(R.id.showMeOnMap);
-
-        showMeOnMap.setText(getLocationButtontext());
-        showMeOnMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Button thisButton = (Button) view.findViewById(R.id.showMeOnMap);
-                thisButton.setText(getLocationButtontext());
-                String   mapLink= "https://www.google.com/maps/place/@"+Storage.getFromDB(Storage.lastKnownLocation,getActivity());;
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW,Uri.parse(mapLink));
-                mapIntent.setPackage("com.google.android.apps.maps");
-                startActivity(mapIntent);
-
+        //Respond to replyToFindMyPhone
+        ToggleButton replyToFindMyPhone = (ToggleButton) view.findViewById(R.id.replyToFindMyPhone);
+        replyToFindMyPhone.setHintTextColor(Color.WHITE);
+        replyToFindMyPhone.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.e(fileName, "replyToFindMyPhone  "+isChecked );
+                Storage.storeinDB(Storage.replyToFindMyPhone,""+isChecked,getActivity());
 
             }
         });
+        if(Storage.getFromDB(Storage.replyToFindMyPhone,getActivity()) == null){
+            Storage.storeinDB(Storage.replyToFindMyPhone,"true",getActivity());
+        }
+
+        replyToFindMyPhone.setChecked(Boolean.parseBoolean(Storage.getFromDB(Storage.replyToFindMyPhone,getActivity())));
 
 
         //Auto updates for replyToWhereAreYouSettings
@@ -83,6 +81,9 @@ public class SettingsTab extends Fragment {
 
             }
         });
+        if(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,getActivity()) == null){
+            Storage.storeinDB(Storage.settingsreplyToWhereAreYou,"true",getActivity());
+        }
         replyToWhereAreYouSettings = Boolean.parseBoolean(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,getActivity()));
         replyToWhereAreYou.setChecked(replyToWhereAreYouSettings);
 
@@ -115,6 +116,9 @@ public class SettingsTab extends Fragment {
 
 
         //Safe zone boundry
+        Storage.settingsSafeZoneBoundryDefault = Double.parseDouble( getActivity().getResources().getStringArray(R.array.safe_zone_array)[0]);
+        safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
+        Log.e(fileName, "default geo fencing "+safeZoneBoundrySettings );
         Spinner safeZoneBoundry = (Spinner) view.findViewById(R.id.safeZoneBoundry);
         safeZoneBoundry.setBackgroundColor(Color.WHITE);
         safeZoneBoundry.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
