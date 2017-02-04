@@ -23,12 +23,12 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
 
 
         if(Storage.isLocationTrackerOn(context)){
-           /* if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,context ))) {
+            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,context ))) {
                 Intent speakIntent = new Intent(context, ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak,"Alarm started");//+" accuracy "+mLastLocation.getAccuracy()
+                speakIntent.putExtra(ReadOut.textToSpeak,"Getting location");//+" accuracy "+mLastLocation.getAccuracy()
                 speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                 context.startService(speakIntent);
-            }*/
+            }
             Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
             startWakefulService(context,locationCordinatesIntent);
         }else {

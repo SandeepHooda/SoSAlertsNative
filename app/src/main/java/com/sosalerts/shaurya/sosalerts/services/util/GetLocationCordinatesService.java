@@ -311,13 +311,19 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                    Storage.storeinDBStringSet(Storage.savedLocations, currentLocationName +"_"+mapLink,this);
                 }
 
+                useGoogleApi = !useGoogleApi;
                 if(mLastLocation.getAccuracy() < 100){
-                    useGoogleApi = !useGoogleApi;
                     Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES_SOURCE,locationCordinatesSource);
                     startService(addLocatorIntent);
                 }else {
+                    if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,this ))) {
+                        Intent speakIntent = new Intent(this, ReadOut.class);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Location accuracy factor too less "+mLastLocation.getAccuracy());//+" accuracy "+mLastLocation.getAccuracy()
+                        speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                        startService(speakIntent);
+                    }
                     Log.e(fileName, " Not very accurate ");
                 }
 
