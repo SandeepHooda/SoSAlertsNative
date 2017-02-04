@@ -295,7 +295,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             }else {
                 nextChainOfDuty = null;
             }
-
+            Log.e(fileName," IncomingSms.phoneNo @@@@@@@@@@@@ "+intent.getStringExtra(IncomingSms.phoneNo));
             Intent addressNameIntent = new Intent(this, FetchAddressIntentService.class);
             addressNameIntent.putExtra(IncomingSms.phoneNo, intent.getStringExtra(IncomingSms.phoneNo));
             addressNameIntent.putExtra(FetchAddressIntentService.LOCATION_DATA_CORDINATES,mLastLocation);

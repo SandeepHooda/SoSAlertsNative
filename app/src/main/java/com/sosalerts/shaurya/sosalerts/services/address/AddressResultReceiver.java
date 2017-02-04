@@ -85,6 +85,7 @@ public class AddressResultReceiver extends ResultReceiver {
             if(myemergencyContacts.contains(Storage.getOnlyNumbers(phoneNo))){
 
                 if(!MainActivity.testMode){
+                    Log.e(fileName, "Reply to where are you message "+"I am at "+address + " Exact location: " +cordinates);
                     smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
                 }else {
                     Log.e(fileName, "Test mode: I know you "+"I am at "+address + " Exact location: " +cordinates);
