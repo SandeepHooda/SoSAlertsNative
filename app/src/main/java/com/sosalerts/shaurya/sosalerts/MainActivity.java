@@ -46,9 +46,15 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
     public AddressResultReceiver addressResultReceiver;
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
-    private static final int REQUEST_LOCATION = 2;
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =1 ;
+    private static final int MY_PERMISSIONS_REQUEST_WAKE_LOCK =2 ;
+    private static final int MY_PERMISSIONS_REQUEST_RECEIVE_SMS =3 ;
+    private static final int MY_PERMISSIONS_REQUEST_READ_SMS =4 ;
+    private static final int MY_PERMISSIONS_REQUEST_VIBRATE =5 ;
+    private static final int MY_PERMISSIONS_FINE_LOCATION =6 ;
+    private static final int MY_PERMISSIONS_READ_CONTACTS =7 ;
+    private static final int MY_PERMISSIONS_CALL_PHONE =8 ;
+    private static final int MY_PERMISSIONS_BOOT =9 ;
     private static boolean oneTimeActivityStarted = false;
     private String currentLocationName = "";
     private String currentLocation = null;
@@ -108,43 +114,101 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    } else {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_FINE_LOCATION);
+                    }
+
+                } else {
+                    Log.e(fileName, "Has location permission");
+                }
+            }
+            case MY_PERMISSIONS_FINE_LOCATION: {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_CONTACTS)) {
+                    } else {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_READ_CONTACTS);
+                    }
+
+                } else {
+                    Log.e(fileName, "Has read contact permission");
+                }
+            }
+            case MY_PERMISSIONS_READ_CONTACTS: {
+                if (ActivityCompat.checkSelfPermission(MainActivity.this,  Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.CALL_PHONE)) {
+                    } else {
+                        ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.CALL_PHONE}, MY_PERMISSIONS_CALL_PHONE);
+                    }
+
+                }else{
+                    Log.e(fileName ,"Has call phone permission");
+                }
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
     private void checkPermissions(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)     != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.SEND_SMS)) {
             } else {
                 ActivityCompat.requestPermissions(this,  new String[]{Manifest.permission.SEND_SMS},  MY_PERMISSIONS_REQUEST_SEND_SMS);
             }
+        }else{
+            Log.e(fileName ,"Has send sms permission");
         }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WAKE_LOCK)      != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.WAKE_LOCK}, REQUEST_LOCATION);
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.WAKE_LOCK)) {
+            } else {
+                ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.WAKE_LOCK}, MY_PERMISSIONS_REQUEST_WAKE_LOCK);
+            }
+
+        }else{
+            Log.e(fileName ,"Has wake lock permission");
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)      != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_SMS}, REQUEST_LOCATION);
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.RECEIVE_SMS)) {
+            } else {
+                    ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_SMS}, MY_PERMISSIONS_REQUEST_RECEIVE_SMS);
+            }
+
+        }else{
+            Log.e(fileName ,"Has receive permission");
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)      != PackageManager.PERMISSION_GRANTED) {
-            Log.e(fileName ,"donot have SMS read permission");
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.READ_SMS}, REQUEST_LOCATION);
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.READ_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.READ_SMS}, MY_PERMISSIONS_REQUEST_READ_SMS);
+            }
+
+        }else{
+            Log.e(fileName ,"Has read sms permission");
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.VIBRATE)      != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.VIBRATE}, REQUEST_LOCATION);
-        }
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)      != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.VIBRATE)) {
+            } else {
+                ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.VIBRATE}, MY_PERMISSIONS_REQUEST_VIBRATE);
+            }
+
+        }else{
+            Log.e(fileName ,"Has vibrate permission");
         }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)      != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_LOCATION);
-        }
-
-        if (ActivityCompat.checkSelfPermission(MainActivity.this,  Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.CALL_PHONE}, REQUEST_LOCATION);
-        }
         if (ActivityCompat.checkSelfPermission(MainActivity.this,  Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_BOOT_COMPLETED}, REQUEST_LOCATION);
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,  Manifest.permission.RECEIVE_BOOT_COMPLETED)) {
+            } else {
+                ActivityCompat.requestPermissions(this,    new String[]{Manifest.permission.RECEIVE_BOOT_COMPLETED}, MY_PERMISSIONS_BOOT);
+            }
+
         }else{
             Log.e(fileName ,"Has boot permission");
         }
@@ -208,6 +272,9 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
 
     }
     private void readContacts(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)      != PackageManager.PERMISSION_GRANTED) {
+           return;
+        }
         Cursor cursor = getContentResolver().query(   ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null,null, null);
 
         //now we have cusror with contacts and get diffrent value from cusror.

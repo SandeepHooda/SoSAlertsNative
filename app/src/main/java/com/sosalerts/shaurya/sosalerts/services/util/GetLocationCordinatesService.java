@@ -320,7 +320,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                 }else {
                     if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,this ))) {
                         Intent speakIntent = new Intent(this, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Location accuracy factor too less "+mLastLocation.getAccuracy());//+" accuracy "+mLastLocation.getAccuracy()
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Location accuracy too less "+mLastLocation.getAccuracy()+" meters ");//+" accuracy "+mLastLocation.getAccuracy()
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
                     }
