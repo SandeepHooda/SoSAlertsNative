@@ -56,15 +56,18 @@ public class ScreenReceiver extends BroadcastReceiver {
                     if (null != contactList && contactList.size() >0){
                         String firstPhone = contactList.get(0);
 
-                        //call a phone
-                        Intent phoneIntent = new Intent(Intent.ACTION_CALL);
-                        phoneIntent.setData(Uri.parse("tel:"+Storage.getOnlyNumbers(firstPhone)));
-                        phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                        if(!MainActivity.testMode){
+                            //call a phone
+                            Intent phoneIntent = new Intent(Intent.ACTION_CALL);
+                            phoneIntent.setData(Uri.parse("tel:"+Storage.getOnlyNumbers(firstPhone)));
+                            phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
 
-                            return;
+                                return;
+                            }
+                            context.startActivity(phoneIntent);
                         }
-                        context.startActivity(phoneIntent);
+
 
                     }
 
