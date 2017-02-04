@@ -9,7 +9,7 @@ import android.os.Bundle;
  * Created by shaurya on 1/26/2017.
  */
 
-public class MyDialog extends Activity {
+public class FindMyPhoneDialog extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,7 +25,7 @@ public class MyDialog extends Activity {
                 } } };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Looking for me?");
-        builder.setMessage("Glad that you me") .setPositiveButton("Me too!", dialogClickListener) .setNegativeButton("Thanks", dialogClickListener).show();
+        builder.setMessage("Glad to meet me") .setPositiveButton("Me too!", dialogClickListener) .setNegativeButton("Thanks", dialogClickListener).show();
 
     }
 }

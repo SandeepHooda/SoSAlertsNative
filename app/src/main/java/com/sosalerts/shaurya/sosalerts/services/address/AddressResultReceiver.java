@@ -1,11 +1,8 @@
 package com.sosalerts.shaurya.sosalerts.services.address;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
-import android.os.Vibrator;
 import android.telephony.SmsManager;
 import android.util.Log;
 
@@ -14,11 +11,8 @@ import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.powerbutton.ScreenReceiver;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
-import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
-import com.sosalerts.shaurya.sosalerts.services.util.PhoneVibrate;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 

@@ -29,7 +29,7 @@
             </intent-filter>
 
         </activity>
-        <activity android:name=".services.util.MyDialog" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+        <activity android:name=".services.util.FindMyPhoneDialog" android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
         </activity>
         <activity android:name=".services.util.PhoneVibrate" >

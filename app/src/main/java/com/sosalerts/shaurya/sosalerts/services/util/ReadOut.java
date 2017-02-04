@@ -4,26 +4,15 @@ package com.sosalerts.shaurya.sosalerts.services.util;
  * Created by shaurya on 1/26/2017.
  */
 
-import android.app.AlertDialog;
 import android.app.IntentService;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Bundle;
-import android.app.Activity;
-import android.content.DialogInterface.OnClickListener;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Menu;
-import android.widget.Toast;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
-import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.sms.IncomingSms;
-import com.sosalerts.shaurya.sosalerts.services.util.MyDialog;
-
-
 
 
 public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListener*/{
@@ -67,7 +56,7 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
         sayString(whatToSay);
         if(IncomingSms.findMyPhone.equals(orignator)){
             phoneFound = false;
-            Intent dialogIntent = new Intent(this, MyDialog.class);
+            Intent dialogIntent = new Intent(this, FindMyPhoneDialog.class);
             dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(dialogIntent);
             while(!phoneFound){
