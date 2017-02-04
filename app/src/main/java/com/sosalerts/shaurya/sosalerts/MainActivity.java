@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
                 }else{
                     Log.e(fileName ,"Has call phone permission");
                 }
+                readContacts();
             }
 
             // other 'case' lines to check for other
