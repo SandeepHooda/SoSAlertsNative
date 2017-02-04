@@ -25,7 +25,7 @@ public class SosAlertOnFire extends Activity {
                 } } };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Do you feel safe now?");
-        builder.setMessage("Is danger over now") .setPositiveButton("Yes", dialogClickListener) .show();
+        builder.setMessage("Is danger over now?") .setPositiveButton("Yes", dialogClickListener) .show();
 
     }
 }
