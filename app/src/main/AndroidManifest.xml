@@ -32,6 +32,10 @@
         <activity android:name=".services.util.FindMyPhoneDialog" android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
         </activity>
+        <activity android:name=".services.util.SosAlertOnFire" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+
+        </activity>
+
         <activity android:name=".services.util.PhoneVibrate" >
 
         </activity>

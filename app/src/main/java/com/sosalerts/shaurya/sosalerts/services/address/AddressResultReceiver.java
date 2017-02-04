@@ -91,21 +91,29 @@ public class AddressResultReceiver extends ResultReceiver {
             }
 
         }else if(ScreenReceiver.SOSAlert.equals(origination)){
+            MainActivity.sosAlertOnFire = true;
+            while(MainActivity.sosAlertOnFire){
+                for (String contact:myemergencyContactsList ){
+                    if(!MainActivity.testMode){
+                        Log.e(fileName, contact+": I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
+                        smsManager.sendTextMessage(contact, null,  "I am in danger. I am at "+address + " Exact location: " +cordinates, null, null);
 
-            for (String contact:myemergencyContactsList ){
-                if(!MainActivity.testMode){
-                    Log.e(fileName, contact+": I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
-                    smsManager.sendTextMessage(contact, null,  "I am in danger. I am at "+address + " Exact location: " +cordinates, null, null);
-
-                }else {
-                    Log.e(fileName, "Test mode: I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
+                    }else {
+                        Log.e(fileName, "Test mode: I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
+                    }
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(1000 *60);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+
         }
         if (mReceiver != null) { //This can send data to activity
             Log.e(fileName, origination+" Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));

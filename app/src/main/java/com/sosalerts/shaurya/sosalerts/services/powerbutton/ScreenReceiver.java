@@ -18,7 +18,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.util.FindMyPhoneDialog;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
+import com.sosalerts.shaurya.sosalerts.services.util.SosAlertOnFire;
 
 import java.util.Date;
 import java.util.List;
@@ -66,6 +68,9 @@ public class ScreenReceiver extends BroadcastReceiver {
 
                     }
 
+                    Intent dialogIntent = new Intent(context, SosAlertOnFire.class);
+                    dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(dialogIntent);
                     //SMS to all
                     String myemergencyContacts = Storage.getEmergencyContacts(context);
                     Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);

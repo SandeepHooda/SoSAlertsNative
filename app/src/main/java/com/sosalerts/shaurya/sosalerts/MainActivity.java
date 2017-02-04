@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
 
     public static Map<String,String> allContacts = new HashMap<String,String>();
     public static final boolean testMode = false;
+    public static boolean sosAlertOnFire = false;
     private final String fileName = "MainActivity : ";
     @Override
     protected  void onResume(){
