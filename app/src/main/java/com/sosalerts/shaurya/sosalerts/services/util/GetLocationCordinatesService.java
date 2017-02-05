@@ -67,6 +67,10 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     public static final String ChainOfDuty_SMS_ONENumber = "ChainOfDuty_SMS_ONENumber";
     public static final String ChainOfDuty_SMS_AllContact = "ChainOfDuty_SMS_AllContact";
     public static final String myemergencyContactsNumbers = "myemergencyContactsNumbers";
+    private static String locationSource_GPS = "GPS";
+    private static String locationSource_CELL = "Cell";
+    private static String locationSource_FUSED = "Fused";
+    private static String locationSource_FUSED_LastKnown = "Fused last known";
 
     private String whatToSpeak;
     private LocationTrackerIntentService locationReceiver;
@@ -106,22 +110,42 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             useGoogleApi = false;
         }
         if(useGoogleApi){
-            userLocationFacade();
+            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
+                Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
+                speakIntent.putExtra(ReadOut.textToSpeak,"Getting location  via "+locationSource_FUSED);//+" accuracy "+mLastLocation.getAccuracy()
+                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                getApplicationContext().startService(speakIntent);
+            }
             Log.e(fileName, "Getting location : Using google service  - BAU");
+            userLocationFacade();
+
       } else {
+            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
+                Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
+                speakIntent.putExtra(ReadOut.textToSpeak,"Getting location  via "+locationSource_CELL +" and "+locationSource_GPS);//+" accuracy "+mLastLocation.getAccuracy()
+                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                getApplicationContext().startService(speakIntent);
+            }
             Log.e(fileName, "Getting location : Using google location via cellular network - New");
             getLocationViaNetwork();
         }
 
     }
 
-    private android.location.LocationListener getListner(){
+    private android.location.LocationListener getListner(String type){
+        final String locationListner = type;
         return new android.location.LocationListener() {
             public void onLocationChanged(Location location) {
-                Log.e(fileName, " Location listner called !!!!!!!");
+               Log.e(fileName, locationListner+" Location listner called !!!!!!!");
                 locationSource = getLocationSourceLocationManagerUpdateListner;
                 mLastLocation = location;
-                processLocationResults();
+                if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
+                    Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
+                    speakIntent.putExtra(ReadOut.textToSpeak,locationListner+" Got location result with accuracy "+mLastLocation.getAccuracy());
+                    speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                    startService(speakIntent);
+                }
+                processLocationResults(locationListner);
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -142,8 +166,8 @@ public class GetLocationCordinatesService extends IntentService implements Googl
         }
 
 
-        locManagerLocationListenerNetwork = getListner();
-        locManagerLocationListenerGPS = getListner();
+        locManagerLocationListenerNetwork = getListner(locationSource_CELL);
+        locManagerLocationListenerGPS = getListner(locationSource_GPS);
 
         /*Location location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         if(null != location){
@@ -159,8 +183,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
         locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locManagerLocationListenerGPS);
         try {
             Thread.sleep(5000);
-            locManager.removeUpdates(locManagerLocationListenerGPS);
-            Log.e(fileName, " Removed location listner after sleep");
+            Log.e(fileName, " Let GPS read for 5 seconds");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -226,16 +249,16 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
             return;
         }
-        /*try {
+        try {
             Thread.sleep(1000); //So that location is available
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }*/
+        }
 
         mLastLocation = null;//LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (null != mLastLocation) {
             locationSource = getLocationSourceFusedApi;
-            processLocationResults();
+            processLocationResults(locationSource_FUSED_LastKnown);
         } else {
             LocationRequest mLocationRequest = new LocationRequest();
             mLocationRequest.setNumUpdates(1);
@@ -254,25 +277,26 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     public void onLocationChanged(Location location) {
         mLastLocation = location;
         locationSource = getLocationSourceFusedApiUpdateListner;
-        processLocationResults();
+        processLocationResults(locationSource_FUSED);
     }
 
-    private void processLocationResults() {
+    private void processLocationResults(String originator) {
 
         String locationCordinatesSource = "";
 
         if (locationSource == getLocationSourceLocationManagerUpdateListner) {
-            locationCordinatesSource = " via Cell";
+            locationCordinatesSource = originator;
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
                return;
             }
 
             locManager.removeUpdates(locManagerLocationListenerNetwork);
-            Log.e(fileName, " Removed location listner in result processing");
+            locManager.removeUpdates(locManagerLocationListenerGPS);
+            Log.e(fileName, " Removed GPS and Network location listner in result processing");
         }
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            locationCordinatesSource = " via GPS";
+            locationCordinatesSource = originator;
             if(locationSource == getLocationSourceFusedApiUpdateListner){
                 LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
             }
@@ -313,6 +337,12 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
                 useGoogleApi = !useGoogleApi;
                 if(mLastLocation.getAccuracy() < 100){
+                    if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
+                        Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Got your location with great accuracy");
+                        speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                        getApplicationContext().startService(speakIntent);
+                    }
                     Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES_SOURCE,locationCordinatesSource);
