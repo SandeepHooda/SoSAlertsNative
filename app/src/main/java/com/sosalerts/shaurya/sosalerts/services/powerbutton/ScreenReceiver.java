@@ -8,19 +8,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
-import android.telephony.SmsManager;
 import android.util.Log;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
-import com.sosalerts.shaurya.sosalerts.services.util.FindMyPhoneDialog;
+import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
-import com.sosalerts.shaurya.sosalerts.services.util.SosAlertOnFire;
+import com.sosalerts.shaurya.sosalerts.services.util.SosAlertOnFireDialog;
 
 import java.util.Date;
 import java.util.List;
@@ -62,7 +58,6 @@ public class ScreenReceiver extends BroadcastReceiver {
                             phoneIntent.setData(Uri.parse("tel:"+Storage.getOnlyNumbers(firstPhone)));
                             phoneIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-
                                 return;
                             }
                             context.startActivity(phoneIntent);
@@ -71,11 +66,12 @@ public class ScreenReceiver extends BroadcastReceiver {
 
                     }
 
-                    Intent dialogIntent = new Intent(context, SosAlertOnFire.class);
+                    Intent dialogIntent = new Intent(context, SosAlertOnFireDialog.class);
                     dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(dialogIntent);
                     //SMS to all
                     String myemergencyContacts = Storage.getEmergencyContacts(context);
+                    AddressResultReceiver.smsToAll(Storage.getEmergencyContactsList(context), null, null);
                     Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
                     String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_AllContact;
                     locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);

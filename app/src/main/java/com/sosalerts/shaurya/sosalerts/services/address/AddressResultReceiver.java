@@ -21,7 +21,7 @@ import java.util.StringTokenizer;
  */
 
 public class AddressResultReceiver extends ResultReceiver {
-    private final String fileName = this.getClass().getSimpleName();
+    private static final String fileName = AddressResultReceiver.class.getSimpleName();
 
     private Receiver mReceiver;
 
@@ -91,15 +91,34 @@ public class AddressResultReceiver extends ResultReceiver {
             }
 
         }else if(ScreenReceiver.SOSAlert.equals(origination)){
-            MainActivity.sosAlertOnFire = true;
+
+            smsToAll(myemergencyContactsList, address, cordinates);
+        }
+        if (mReceiver != null) { //This can send data to activity
+            Log.e(fileName, origination+" Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
+
+            mReceiver.onReceiveResult(resultCode, resultData);
+        }
+    }
+
+    public static class SmsTask implements Runnable{
+        SmsManager smsManager = SmsManager.getDefault();
+        List<String> myemergencyContactsList;
+        String msg;
+        public SmsTask( List<String> myemergencyContactsList,String msg ){
+            this.myemergencyContactsList = myemergencyContactsList;
+            this.msg = msg;
+        }
+        @Override
+        public void run() {
             while(MainActivity.sosAlertOnFire){
                 for (String contact:myemergencyContactsList ){
                     if(!MainActivity.testMode){
-                        Log.e(fileName, contact+": I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
-                        smsManager.sendTextMessage(contact, null,  "I am in danger. I am at "+address + " Exact location: " +cordinates, null, null);
+                        Log.e(fileName, contact+msg );
+                        smsManager.sendTextMessage(contact, null,  msg, null, null);
 
                     }else {
-                        Log.e(fileName, "Test mode: I am in danger "+contact +"I am at "+address + " Exact location: " +cordinates);
+                        Log.e(fileName, "Test mode: " +msg);
                     }
                     try {
                         Thread.sleep(2000);
@@ -113,12 +132,34 @@ public class AddressResultReceiver extends ResultReceiver {
                     e.printStackTrace();
                 }
             }
-
-        }
-        if (mReceiver != null) { //This can send data to activity
-            Log.e(fileName, origination+" Result from result receiverrrrrrrrrrrrrrrrrrrrrrrr "+resultData.getString(FetchAddressIntentService.Location_ADDRESS));
-
-            mReceiver.onReceiveResult(resultCode, resultData);
         }
     }
+    private static void sendSMSinBackgreound(final Runnable runnable){
+        final Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } finally {
+
+                }
+            }
+        };
+        t.start();
+        //return t;
+    }
+    public static void smsToAll(List<String> myemergencyContactsList, String address, String cordinates){
+        String msg = " I am in danger.";
+        if (address != null){
+            msg += " I am at "+address;
+        }
+        if (null != cordinates){
+            msg += " My Exact location: " +cordinates;
+        }
+
+        MainActivity.sosAlertOnFire = true;
+        SmsTask smsTask = new SmsTask(myemergencyContactsList, msg);
+        sendSMSinBackgreound(smsTask);
+    }
 }
+

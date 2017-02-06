@@ -11,7 +11,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
  * Created by shaurya on 2/4/2017.
  */
 
-public class SosAlertOnFire extends Activity {
+public class SosAlertOnFireDialog extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
