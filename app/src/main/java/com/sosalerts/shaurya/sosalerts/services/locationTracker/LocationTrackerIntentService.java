@@ -74,7 +74,7 @@ public class LocationTrackerIntentService extends IntentService {
                 }
                 if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                     Intent speakIntent = new Intent(this, ReadOut.class);
-                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" meters from "+locationName +" calculated "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));//+" accuracy "+mLastLocation.getAccuracy()
+                    speakIntent.putExtra(ReadOut.textToSpeak,distanceStr+" meters from "+locationName +" calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));//+" accuracy "+mLastLocation.getAccuracy()
                     speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                     startService(speakIntent);
                 }
