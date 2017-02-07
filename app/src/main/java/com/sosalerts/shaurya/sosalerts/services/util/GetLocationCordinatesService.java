@@ -52,7 +52,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     private int getLocationSourceFusedApiUpdateListner = 1;
     private int getLocationSourceLocationManager = 2;
     private int getLocationSourceLocationManagerUpdateListner = 3;
-    private android.location.LocationListener locManagerLocationListenerNetwork;
+    //private android.location.LocationListener locManagerLocationListenerNetwork;
     private android.location.LocationListener locManagerLocationListenerGPS;
     private final String fileName = this.getClass().getSimpleName();
     private Location mLastLocation;
@@ -161,22 +161,61 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             return;
         }
 
-        locManagerLocationListenerNetwork = getListner(locationSource_CELL);
+        //locManagerLocationListenerNetwork = getListner(locationSource_CELL);
         locManagerLocationListenerGPS = getListner(locationSource_GPS);
 
         LocationManagerObject obj = new LocationManagerObject();
         obj.setLocManager(locManager);
-        obj.getListners().add(locManagerLocationListenerNetwork);
+        //obj.getListners().add(locManagerLocationListenerNetwork);
         obj.getListners().add(locManagerLocationListenerGPS);
         synchronized (this){
             locationManagerObjectList.add(obj);
         }
 
 
-        locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locManagerLocationListenerNetwork);
+        //locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locManagerLocationListenerNetwork);
         locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locManagerLocationListenerGPS);
+        RemoveListnerTask task = new RemoveListnerTask(locManager,locManagerLocationListenerGPS,this);
+        removeGpsListner(task);
+    }
 
+    public static class RemoveListnerTask implements Runnable{
+        android.location.LocationListener locManagerLocationListenerGPS;
+        LocationManager locManager;
+        Context ctx;
 
+       public RemoveListnerTask(LocationManager locManager, android.location.LocationListener locManagerLocationListenerGPS, Context ctx){
+            this.locManager = locManager;
+            this.locManagerLocationListenerGPS = locManagerLocationListenerGPS;
+           this.ctx = ctx;
+        }
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(1000*10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+                return;
+            }
+            Log.e("RemoveListnerTask","Removed GPS listner in a thread###");
+            locManager.removeUpdates(locManagerLocationListenerGPS);
+        }
+    }
+    private static void removeGpsListner(final Runnable runnable){
+        final Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } finally {
+
+                }
+            }
+        };
+        t.start();
+        //return t;
     }
 
     public void connectFusedApi() {
@@ -277,7 +316,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                return;
             }
 
-            locManager.removeUpdates(locManagerLocationListenerNetwork);
+            //locManager.removeUpdates(locManagerLocationListenerNetwork);
             locManager.removeUpdates(locManagerLocationListenerGPS);
             Log.e(fileName, " Removed GPS and Network location listner in result processing");
         }
