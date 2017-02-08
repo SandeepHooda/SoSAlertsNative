@@ -16,6 +16,7 @@ import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
+import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.services.util.SosAlertOnFireDialog;
 
 import java.util.Date;
@@ -34,6 +35,7 @@ public class ScreenReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, final Intent intent) {
 
         if (Intent.ACTION_SCREEN_ON.equals(intent.getAction()) || Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+            ReadOut.phoneFound = true;
 
             try{
                 triggerAlertAfterCount = Integer.parseInt(Storage.getFromDB(Storage.settingsPowerButtonCount,context));
@@ -95,11 +97,7 @@ public class ScreenReceiver extends BroadcastReceiver {
 
         } else if (intent.getAction().equals(Intent.ACTION_USER_PRESENT)) {
             Log.e(fileName, "Sandeep no sms Screen receiver userpresent");
-           /* Log.e(fileName," Sandeep Screen receiver wasScreenOn "+wasScreenOn);
-            Intent main = new Intent(context, MainActivity.class);
-            main.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            main.putExtra("sandeep.sms", "Hello android native developer");
-            context.startActivity(main);*/
+            ReadOut.phoneFound = true;
 
         }
     }

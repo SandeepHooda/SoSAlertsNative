@@ -7,7 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -15,12 +17,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
@@ -41,23 +38,16 @@ import java.util.List;
  * Created by shaurya on 1/26/2017.
  */
 
-public class GetLocationCordinatesService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class GetLocationCordinatesService extends IntentService  {
     // Google client to interact with Google API
-    private static boolean useGoogleApi = false;
-    private GoogleApiClient mGoogleApiClient;
+
     private LocationManager locManager;
-    private int locationSource = 0;
-    private int getLocationSourceFusedApi = 0;
-    private int getLocationSourceFusedApiUpdateListner = 1;
-    private int getLocationSourceLocationManager = 2;
-    private int getLocationSourceLocationManagerUpdateListner = 3;
-    //private android.location.LocationListener locManagerLocationListenerNetwork;
-    private android.location.LocationListener locManagerLocationListenerGPS;
+
+    private LocationListener locManagerLocationListener;
     private final String fileName = this.getClass().getSimpleName();
     private Location mLastLocation;
     public static final String PACKAGE_NAME = "com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService";
-    //public static final String ADDRESS_RESULT_RECEIVER = PACKAGE_NAME +        ".addressResultReceiver";
+
     public static final String LOCATION_CORDINATES = PACKAGE_NAME + ".LOCATION_CORDINATES";
     public static final String LOCATION_CORDINATES_SOURCE = PACKAGE_NAME + ".LOCATION_CORDINATES_SOURCE";
     public static final String SAVED_LOCATIONS = PACKAGE_NAME + ".SAVED_LOCATIONS";
@@ -67,17 +57,16 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     public static final String ChainOfDuty_SMS_ONENumber = "ChainOfDuty_SMS_ONENumber";
     public static final String ChainOfDuty_SMS_AllContact = "ChainOfDuty_SMS_AllContact";
     public static final String myemergencyContactsNumbers = "myemergencyContactsNumbers";
-    private static String locationSource_GPS = "GPS";
-    private static String locationSource_CELL = "Cell";
-    private static String locationSource_FUSED = "Fused";
-    private static String locationSource_FUSED_LastKnown = "Fused last known";
+    private WaitForProviderToGetResults sleepTask;
+
     private static List<LocationManagerObject> locationManagerObjectList = new ArrayList<LocationManagerObject>();
 
     private String whatToSpeak;
-    private LocationTrackerIntentService locationReceiver;
-    PowerManager powerManager;
-    PowerManager.WakeLock wakeLock;
-    LocationListener[] mLocationListeners ;
+
+
+    private boolean locSearchResultReceived = true;
+
+
 
     private Intent intent;
 
@@ -98,51 +87,55 @@ public class GetLocationCordinatesService extends IntentService implements Googl
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        synchronized (this){
-            clearPreviousListners();
+        Log.e(fileName, " Start location hunt!");
+        String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
+
+        if (locationManagerObjectList.size() > 0 && nextChainOfDuty == null) {//Previous searc is not complete
+            Log.e(fileName, " Previous search didn't complete yet ");
+            //Chain of duty is null for locatin tracker request not for SOS alerts
+            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
+                Intent speakIntent = new Intent(this, ReadOut.class);
+                speakIntent.putExtra(ReadOut.textToSpeak," Previous search didn't complete yet  ");
+                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                startService(speakIntent);
+            }
+            return;
         }
+        Log.e(fileName, " No previous search ");
+
+            clearPreviousListners();
+
 
         this.intent = intent;
-        if (Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation, this))) {
-            useGoogleApi = false;
-        }
-        if(useGoogleApi){
-            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
-                Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak,"Getting location  via "+locationSource_FUSED);//+" accuracy "+mLastLocation.getAccuracy()
-                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                getApplicationContext().startService(speakIntent);
-            }
-            Log.e(fileName, "Getting location : Using google service  - BAU");
-            connectFusedApi();
+        locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        getLocationWithBestProvider();
 
-      } else {
-            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
-                Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak,"Getting location  via "+locationSource_CELL +" and "+locationSource_GPS);//+" accuracy "+mLastLocation.getAccuracy()
-                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                getApplicationContext().startService(speakIntent);
-            }
-            Log.e(fileName, "Getting location : Using google location via cellular network - New");
-            getLocationViaNetwork();
-        }
-        useGoogleApi = !useGoogleApi;
+
     }
 
-    private android.location.LocationListener getListner(String type){
-        final String locationListner = type;
-        return new android.location.LocationListener() {
+    private void getLocationWithBestProvider(){
+        List<String> providerChain = new ArrayList<String>();;
+        if(null == LocationTrackerIntentService.previousLocation || LocationTrackerIntentService.unknownLocation.equals(LocationTrackerIntentService.previousLocation)){
+            //Unknown area - Most probably out side of buiulding so user GPS then cell
+            providerChain.add(LocationManager.GPS_PROVIDER);
+            providerChain.add(LocationManager.NETWORK_PROVIDER);
+        }else {
+            //Known area - Most probably in side of buiulding so user Cell then GPS
+            providerChain.add(LocationManager.NETWORK_PROVIDER);
+            providerChain.add(LocationManager.GPS_PROVIDER);
+        }
+
+        locSearchResultReceived = false;
+        getLocationViaProvider(providerChain);
+    }
+    private LocationListener getListner(String type){
+        final String locationProvider = type;
+        return new LocationListener() {
             public void onLocationChanged(Location location) {
-               Log.e(fileName, locationListner+" Location listner called !!!!!!!");
-                locationSource = getLocationSourceLocationManagerUpdateListner;
+               Log.e(fileName, locationProvider+" Location listner called !!!!!!!");
                 mLastLocation = location;
-                if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
-                    Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
-                    speakIntent.putExtra(ReadOut.textToSpeak,locationListner+" Got location result with accuracy "+mLastLocation.getAccuracy());
-                    speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                    startService(speakIntent);
-                }
-                processLocationResults(locationListner);
+                processLocationResults(locationProvider);
+                sleepTask.cancel(true);
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -155,181 +148,85 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             }
         };
     }
-    private void getLocationViaNetwork() {
-        locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+    private void getLocationViaProvider(List<String> providerChain) {
+        Log.e(fileName, " chain of provider "+providerChain+" locSearchResultReceived ? "+locSearchResultReceived);
+
+         clearPreviousListners();
+
+        if(null == providerChain || providerChain.size() ==0 || locSearchResultReceived) {
+
+            locSearchResultReceived = true;
+            return;
+        }
+        String provider = providerChain.get(0);
+        if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
+            Intent speakIntent = new Intent(this, ReadOut.class);
+            String textToSpeak = " Tried with  "+provider;
+            if(providerChain.size() > 1){
+                textToSpeak+=". Now I will try with "+providerChain.get(1);
+            }else {
+                textToSpeak +=". Nothing more to try";
+            }
+            speakIntent.putExtra(ReadOut.textToSpeak,textToSpeak);
+            speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+            startService(speakIntent);
+        }
+        Log.e(fileName, " Attempt to get location via  "+provider);
+
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        //locManagerLocationListenerNetwork = getListner(locationSource_CELL);
-        locManagerLocationListenerGPS = getListner(locationSource_GPS);
-
+        locManagerLocationListener = getListner(provider);
         LocationManagerObject obj = new LocationManagerObject();
         obj.setLocManager(locManager);
-        //obj.getListners().add(locManagerLocationListenerNetwork);
-        obj.getListners().add(locManagerLocationListenerGPS);
+        obj.getListners().add(locManagerLocationListener);
         synchronized (this){
             locationManagerObjectList.add(obj);
         }
 
 
-        //locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locManagerLocationListenerNetwork);
-        locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locManagerLocationListenerGPS);
-        RemoveListnerTask task = new RemoveListnerTask(locManager,locManagerLocationListenerGPS,this);
-        removeGpsListner(task);
+        providerChain.remove(0);
+        locManager.requestLocationUpdates(provider, 0, 0, locManagerLocationListener);
+        sleepTask = new WaitForProviderToGetResults();
+        sleepTask.execute(providerChain);//Remove listner after waiting enough for result
     }
 
-    public static class RemoveListnerTask implements Runnable{
-        android.location.LocationListener locManagerLocationListenerGPS;
-        LocationManager locManager;
-        Context ctx;
 
-       public RemoveListnerTask(LocationManager locManager, android.location.LocationListener locManagerLocationListenerGPS, Context ctx){
-            this.locManager = locManager;
-            this.locManagerLocationListenerGPS = locManagerLocationListenerGPS;
-           this.ctx = ctx;
-        }
+    public  class WaitForProviderToGetResults extends AsyncTask<List<String>, Void, List<String>>{
+
+
         @Override
-        public void run() {
+        protected List<String> doInBackground(List<String>... providerChain) {
             try {
-                Thread.sleep(1000*10);
+                Thread.sleep(1000*30);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+               // e.printStackTrace();
             }
-            if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
-                return;
-            }
-            Log.e("RemoveListnerTask","Removed GPS listner in a thread###");
-            locManager.removeUpdates(locManagerLocationListenerGPS);
+
+           return providerChain[0];
+        }
+        protected void onPostExecute(List<String> providerChain) {
+            getLocationViaProvider(providerChain);
         }
     }
-    private static void removeGpsListner(final Runnable runnable){
-        final Thread t = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } finally {
-
-                }
-            }
-        };
-        t.start();
-        //return t;
-    }
-
-    public void connectFusedApi() {
-        if (checkPlayServices()) {
-            Log.e(fileName, "buildGoogleApiClient");
-            // Building the GoogleApi client
-            buildGoogleApiClient();
-            if (mGoogleApiClient != null) {
-                mGoogleApiClient.connect();
-            }
-        }
-    }
-    @Override
-    public void onConnected(Bundle bundle) {
-        getFusedLocation();
-
-    }
-
-    private boolean checkPlayServices() {
-        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
-        int resultCode = googleAPI.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (googleAPI.isUserResolvableError(resultCode)) {
-            } else {
-                //Toast.makeText(getApplicationContext(),     "This device is not supported.", Toast.LENGTH_LONG).show();
-
-            }
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Creating google api client object
-     * */
-    protected synchronized void buildGoogleApiClient() {
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API).build();
-    }
 
 
 
-    @Override
-    public void onConnectionSuspended(int arg0) {
-        mGoogleApiClient.connect();
-    }
+
 
 
 
     private boolean isLocationRecent(long locationTime){
         return ((new Date().getTime() - locationTime)  < 1000 * 60 );
     }
-    private void getFusedLocation() {
-        Log.e(fileName, " getFusedLocation");
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-         return;
-        }
-        try {
-            Thread.sleep(1000); //So that location is available
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (null != mLastLocation && isLocationRecent(mLastLocation.getTime()) ) {
-            locationSource = getLocationSourceFusedApi;
-            processLocationResults(locationSource_FUSED_LastKnown);
-        } else {
-            LocationRequest mLocationRequest = new LocationRequest();
-            mLocationRequest.setNumUpdates(1);
-            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            mLocationRequest.setExpirationDuration(1000);
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient, mLocationRequest, this);
-        }
 
 
-    }
+    private void processLocationResults(String locationProvider) {
+        String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
+        clearPreviousListners();
 
-    @Override
-    public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        locationSource = getLocationSourceFusedApiUpdateListner;
-        processLocationResults(locationSource_FUSED);
-    }
-
-    private void processLocationResults(String originator) {
-
-        String locationCordinatesSource = "";
-
-        if (locationSource == getLocationSourceLocationManagerUpdateListner) {
-            locationCordinatesSource = originator;
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
-               return;
-            }
-
-            //locManager.removeUpdates(locManagerLocationListenerNetwork);
-            locManager.removeUpdates(locManagerLocationListenerGPS);
-            Log.e(fileName, " Removed GPS and Network location listner in result processing");
-        }
-
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            locationCordinatesSource = originator;
-            if(locationSource == getLocationSourceFusedApiUpdateListner){
-                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
-            }
-            mGoogleApiClient.disconnect();
-            mGoogleApiClient = null;
-
-        }
         Log.e(fileName, " provider = "+mLastLocation.getProvider()+"  accuracy "+mLastLocation.getAccuracy());
         String location = mLastLocation.getLatitude()+","+mLastLocation.getLongitude();
         String mapLink = "https://www.google.com/maps/place/@"+location+",16z";
@@ -337,7 +234,7 @@ public class GetLocationCordinatesService extends IntentService implements Googl
         Storage.storeinDB(Storage.lastKnownLocationTime, new Date(mLastLocation.getTime()).toString(),this);
         Log.e(fileName, " mLastLocation "+location);
 
-        String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
+
 
         if(nextChainOfDuty != null && nextChainOfDuty.indexOf(ChainOfDuty_Address) >= 0){
             if (nextChainOfDuty.indexOf(",") > 0){
@@ -362,21 +259,23 @@ public class GetLocationCordinatesService extends IntentService implements Googl
                 }
 
                 //Perioid Alarm to get location
-                if(mLastLocation.getAccuracy() < 100 && isLocationRecent(mLastLocation.getTime())){
+                if(isLocationRecent(mLastLocation.getTime())){
+                    String texttoSpeak = locationProvider+" Got your location with accuracy "+mLastLocation.getAccuracy();
+                    Log.e(fileName,texttoSpeak);
                     if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
                         Intent speakIntent = new Intent(getApplicationContext(), ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Got your location with great accuracy");
+                        speakIntent.putExtra(ReadOut.textToSpeak,texttoSpeak);
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         getApplicationContext().startService(speakIntent);
                     }
                     Intent addLocatorIntent = new Intent(this, LocationTrackerIntentService.class);
                     addLocatorIntent.putExtra(LOCATION_CORDINATES,mLastLocation);
-                    addLocatorIntent.putExtra(LOCATION_CORDINATES_SOURCE,locationCordinatesSource);
+                    addLocatorIntent.putExtra(LOCATION_CORDINATES_SOURCE,locationProvider);
                     startService(addLocatorIntent);
                 }else {
                     if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,this ))) {
                         Intent speakIntent = new Intent(this, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Location accuracy too less  or old accuracy "+mLastLocation.getAccuracy()+" meters ");//+" accuracy "+mLastLocation.getAccuracy()
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Location accuracy too less  or old in time "+mLastLocation.getAccuracy()+" meters ");//+" accuracy "+mLastLocation.getAccuracy()
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
                     }
@@ -388,14 +287,11 @@ public class GetLocationCordinatesService extends IntentService implements Googl
             }
 
         }
+        locSearchResultReceived = true;
         //wakeLock.release();
         AlarmReceiver.completeWakefulIntent(intent);
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
 
     @Override
     public void onDestroy() {
@@ -404,25 +300,32 @@ public class GetLocationCordinatesService extends IntentService implements Googl
     }
 
     private void clearPreviousListners(){
-        Log.e(fileName, "About to clear previous listners ##########");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
             return;
         }
-        Iterator<LocationManagerObject> itr = locationManagerObjectList.iterator();
-        while(itr.hasNext()){
-            LocationManagerObject obj = itr.next();
-            if (null != obj){
-                LocationManager mgr = obj.getLocManager();
-                if (null != mgr){
-                    for(android.location.LocationListener listener: obj.getListners()){
-                        mgr.removeUpdates(listener);
-                        Log.e(fileName, "Cleared a listners");
+
+        synchronized (this){
+           if(locationManagerObjectList.size()>0){
+                Log.e(fileName, "About to clear previous listners ##########");
+                Iterator<LocationManagerObject> itr = locationManagerObjectList.iterator();
+                while(itr.hasNext()){
+                    LocationManagerObject obj = itr.next();
+                    if (null != obj){
+                        LocationManager mgr = obj.getLocManager();
+                        if (null != mgr){
+                            for(LocationListener listener: obj.getListners()){
+                                mgr.removeUpdates(listener);
+                                Log.e(fileName, "Cleared a listners");
+                            }
+                        }
                     }
+                    itr.remove();
                 }
+                Log.e(fileName, "Cleared all listners ########");
             }
-            itr.remove();
+
         }
-        Log.e(fileName, "Cleared all listners ########");
+
     }
 
 

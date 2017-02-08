@@ -21,9 +21,9 @@ import java.util.StringTokenizer;
  */
 
 public class LocationTrackerIntentService extends IntentService {
-    private static String previousLocation = null;
+    public static String previousLocation = null;
     private static String currentLocation = null;
-    private final String unknownLocation = "Unknown";
+    public static final String unknownLocation = "Unknown";
     private static Date knownLocationTimeEvent = null;
 
     private final String fileName = this.getClass().getSimpleName();
@@ -80,9 +80,9 @@ public class LocationTrackerIntentService extends IntentService {
                 }
 
 
-                if (distance <safeZoneBoundrySettings){
+                if (distance <(safeZoneBoundrySettings+mLastLocation.getAccuracy())){
                     currentLocation = locationName;
-                    Log.e(fileName, "In safe location : "+distance+ " safeZoneBoundrySettings "+safeZoneBoundrySettings+ " locationName "+locationName);
+                    Log.e(fileName, intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE )+" : In safe location : "+distance+ " safeZoneBoundrySettings "+safeZoneBoundrySettings+ " locationName "+locationName);
                     break;
                 }else {
                    currentLocation = unknownLocation;
@@ -91,7 +91,7 @@ public class LocationTrackerIntentService extends IntentService {
 
             Log.e(fileName, "currentLocation  "+currentLocation +" previousLocation "+previousLocation);
             if(previousLocation != null){// So that the when app starts for the firs time we can ignore this code
-                if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
+                //if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
                     if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);
@@ -107,7 +107,7 @@ public class LocationTrackerIntentService extends IntentService {
                         startService(speakIntent);
                         sendSMSToAll("Exiting "+previousLocation+" "+locationLink);
                     }
-                }
+                //}
 
             }
             previousLocation = currentLocation;

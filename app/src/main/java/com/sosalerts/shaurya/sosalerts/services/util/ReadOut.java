@@ -56,12 +56,12 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
         sayString(whatToSay);
         if(IncomingSms.findMyPhone.equals(orignator)){
             phoneFound = false;
-            Intent dialogIntent = new Intent(this, FindMyPhoneDialog.class);
+            /*Intent dialogIntent = new Intent(this, FindMyPhoneDialog.class);
             dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(dialogIntent);
+            startActivity(dialogIntent);*/
             while(!phoneFound){
 
-                Log.e(fileName, " phoneFound  "+phoneFound );
+               // Log.e(fileName, " phoneFound  "+phoneFound );
                 sayString(whatToSay);
                 try {
                     Thread.sleep(2000);
@@ -78,7 +78,7 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
         myTTS = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                Log.e(fileName, "Text to speach  Status Read Out ##### $$$$$$$$$$$$$$$$$ "+status);
+                //Log.e(fileName, "Text to speach  Status Read Out ##### $$$$$$$$$$$$$$$$$ "+status);
                 String utteranceId=this.hashCode() + "";
                 myTTS.speak(whatToSay, 1, null, utteranceId);
             }
