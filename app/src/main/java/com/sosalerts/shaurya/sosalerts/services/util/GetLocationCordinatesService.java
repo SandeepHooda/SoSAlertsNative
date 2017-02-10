@@ -5,11 +5,13 @@ import android.Manifest;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -83,11 +85,31 @@ public class GetLocationCordinatesService extends IntentService  {
         super("GetLocationCordinatesService");
     }
 
+    private float getBatteryLevel() {
+        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
+        // Error checking that probably isn't needed but I added just in case.
+        if(level == -1 || scale == -1) {
+            return 50.0f;
+        }
+
+        return ((float)level / (float)scale) * 100.0f;
+    }
+
+    public boolean checkIfTrackingEnabled(){
+        Storage.storeinDB(Storage.batteryLevel, ""+getBatteryLevel(), getApplicationContext());
+        return Storage.isLocationTrackerOn(getApplicationContext());
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.e(fileName, " Start location hunt!");
+        Log.e(fileName, " Start location hunt! "+checkIfTrackingEnabled());
+        if(!checkIfTrackingEnabled()){
+            return;
+        }
+
         String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
 
         if (!locSearchResultReceived && nextChainOfDuty == null) {//Previous searc is not complete
@@ -263,7 +285,7 @@ public class GetLocationCordinatesService extends IntentService  {
                 e.printStackTrace();
             }
 
-            Log.e("RemoveListnerTask","Removed GPS listner in a thread###");
+            Log.e("RemoveListnerTask","Removed GPS listner after sleep ###");
             getLocationViaProvider(providerChain, false);
         }
     }

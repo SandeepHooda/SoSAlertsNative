@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
  */
 
 public class Storage {
+    public static final String batteryLevel = "batteryLevel";
     public static final String savedLocations = "SavedLocations";
     public static final String speakLocation = "speakLocation";
     public static final String useAndroidLocation = "useAndroidLocation";
@@ -174,6 +175,16 @@ public class Storage {
     }
 
     public static boolean isLocationTrackerOn( Context activity){
+        String batteryLevelStr = getFromDB(Storage.batteryLevel,  activity);
+        float batteryLevel = 100;
+        try{
+            batteryLevel = Float.parseFloat(batteryLevelStr);
+        }catch(Exception e){
+            batteryLevel = 100;
+        }
+        if(batteryLevel < 20) {
+            return false;
+        }
         SharedPreferences sharedPref = activity.getSharedPreferences(dbName+settingsLocationAutoUpdates,activity.MODE_PRIVATE);
         String frequency =  sharedPref.getString(settingsLocationAutoUpdates, null);
         if ( "off".equalsIgnoreCase(frequency)){

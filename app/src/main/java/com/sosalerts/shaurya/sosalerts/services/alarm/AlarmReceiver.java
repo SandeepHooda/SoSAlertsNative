@@ -20,15 +20,8 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     public static final String originator = "AlarmReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-
-
-        if(Storage.isLocationTrackerOn(context)){
-
-            Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
-            startWakefulService(context,locationCordinatesIntent);
-        }else {
-            Log.e(fileName, "Alarm service to find location is disabled");
-        }
+        Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
+        startWakefulService(context,locationCordinatesIntent);
 
 
     }
