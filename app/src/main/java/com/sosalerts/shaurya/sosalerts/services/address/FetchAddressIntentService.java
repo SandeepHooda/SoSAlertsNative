@@ -138,9 +138,9 @@ public class FetchAddressIntentService extends IntentService{
 
             }
             Storage.storeOrGetCountryCode(getApplicationContext(),address.getCountryCode());
-            deliverResultToReceiver(intent,SUCCESS_RESULT,
-                    TextUtils.join(System.getProperty("line.separator"),
-                            addressFragments),""+cordinatesStr, address.getCountryCode(),originator,phonmeNo,emergencyContacts);
+            String addrerss =  TextUtils.join(System.getProperty("line.separator"),  addressFragments);
+            Storage.storeinDB(Storage.lastKnownLocationAddress, addrerss,getApplicationContext());
+            deliverResultToReceiver(intent,SUCCESS_RESULT,addrerss  ,""+cordinatesStr, address.getCountryCode(),originator,phonmeNo,emergencyContacts);
         }
     }
     @Override

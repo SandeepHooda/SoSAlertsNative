@@ -45,7 +45,7 @@ public class AddressResultReceiver extends ResultReceiver {
         String origination = resultData.getString(MainActivity.orignationActivityName);
         Log.e(fileName, "origination "+origination+" sms ="+resultData.getString(IncomingSms.phoneNo) );
 
-        SmsManager smsManager = SmsManager.getDefault();
+
         String utteranceId=this.hashCode() + "";
         String cordinates = resultData.getString(FetchAddressIntentService.LOCATION_DATA_CORDINATES);
         String country  = resultData.getString(FetchAddressIntentService.LOCATION_DATA_EXTRA_COUNTRY);
@@ -74,21 +74,7 @@ public class AddressResultReceiver extends ResultReceiver {
         Log.e(fileName, "Total myemergencyContactsList   ="+myemergencyContactsList);
         if (IncomingSms.whereAreYou.equals(origination)){
             String phoneNo = resultData.getString(IncomingSms.phoneNo);
-            Log.e(fileName, "Phone no "+phoneNo);
-
-            if(myemergencyContacts.contains(Storage.getOnlyNumbers(phoneNo))){
-
-                if(!MainActivity.testMode){
-                    Log.e(fileName, "Reply to where are you message "+"I am at "+address + " Exact location: " +cordinates);
-                    smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
-                }else {
-                    Log.e(fileName, "Test mode: I know you "+"I am at "+address + " Exact location: " +cordinates);
-                }
-
-
-            }else {
-                Log.e(fileName, "I don't know you "+phoneNo);
-            }
+            sendSMSIfKnown(phoneNo, myemergencyContactsList, address, cordinates);
 
         }else if(ScreenReceiver.SOSAlert.equals(origination)){
 
@@ -101,6 +87,25 @@ public class AddressResultReceiver extends ResultReceiver {
         }
     }
 
+    public static void sendSMSIfKnown(String phoneNo, List<String> myemergencyContactsList, String address, String  cordinates){
+        SmsManager smsManager = SmsManager.getDefault();
+        Log.e(fileName, "Phone no "+phoneNo);
+
+        if(myemergencyContactsList.contains(Storage.getOnlyNumbersLastTen(phoneNo))){
+
+            if(!MainActivity.testMode){
+                Log.e(fileName, "Reply to where are you message "+"I am at "+address + " Exact location: " +cordinates);
+                smsManager.sendTextMessage(phoneNo, null,  "I am at "+address + " Exact location: " +cordinates, null, null);
+            }else {
+                Log.e(fileName, "Test mode: I know you "+"I am at "+address + " Exact location: " +cordinates);
+            }
+
+
+        }else {
+            Log.e(fileName, "Hey I don't know you "+Storage.getOnlyNumbersLastTen(phoneNo)+" I know "+myemergencyContactsList);
+
+        }
+    }
     public static class SmsTask implements Runnable{
         SmsManager smsManager = SmsManager.getDefault();
         List<String> myemergencyContactsList;
@@ -157,7 +162,7 @@ public class AddressResultReceiver extends ResultReceiver {
             msg += " My Exact location: " +cordinates;
         }
 
-        MainActivity.sosAlertOnFire = true;
+
         SmsTask smsTask = new SmsTask(myemergencyContactsList, msg);
         sendSMSinBackgreound(smsTask);
     }

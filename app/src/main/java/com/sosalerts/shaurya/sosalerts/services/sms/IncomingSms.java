@@ -11,8 +11,13 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
+import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Created by shaurya on 1/26/2017.
@@ -66,15 +71,34 @@ public class IncomingSms extends BroadcastReceiver {
 
                     }
                     if(Boolean.parseBoolean(Storage.getFromDB(Storage.settingsreplyToWhereAreYou,context))){
+                        String myemergencyContacts = Storage.getEmergencyContacts(context);
+                        StringTokenizer tokenizer = new StringTokenizer(myemergencyContacts, ",") ;
+                        List<String> myemergencyContactsList = new ArrayList<String>();
+                        while(tokenizer.hasMoreTokens()){
+                            String number = tokenizer.nextToken();
+                            if(null != number && number.trim().length() > 0){
+                                myemergencyContactsList.add(Storage.getOnlyNumbersLastTen(number));
+                            }
+
+                        }
                         if("wru".equals(message) || "where are you".equals(message)){
-                            String myemergencyContacts = Storage.getEmergencyContacts(context);
-                            Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
-                            locationCordinatesIntent.putExtra(phoneNo, senderNum);
-                            String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_ONENumber;
-                            locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
-                            locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, whereAreYou);
-                            locationCordinatesIntent.putExtra(GetLocationCordinatesService.myemergencyContactsNumbers,myemergencyContacts);//myemergencyContacts
-                            context.startService(locationCordinatesIntent);
+                            if(Storage.isLocationTrackerOn(context)){//Use last known location
+                                String lastKnownLocation = Storage.getFromDB(Storage.lastKnownLocation,context);
+                                lastKnownLocation += " at "+Storage.getFromDB(Storage.lastKnownLocationTime,context);
+                                String address = Storage.getFromDB(Storage.lastKnownLocationAddress,context);
+
+                                AddressResultReceiver.sendSMSIfKnown(senderNum, myemergencyContactsList, address, lastKnownLocation);
+                            }else {
+
+                                Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
+                                locationCordinatesIntent.putExtra(phoneNo, senderNum);
+                                String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_ONENumber;
+                                locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
+                                locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, whereAreYou);
+                                locationCordinatesIntent.putExtra(GetLocationCordinatesService.myemergencyContactsNumbers,myemergencyContacts);//myemergencyContacts
+                                context.startService(locationCordinatesIntent);
+                            }
+
 
                         }
                     }

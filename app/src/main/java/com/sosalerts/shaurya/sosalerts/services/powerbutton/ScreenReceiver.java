@@ -19,8 +19,10 @@ import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesServic
 import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.services.util.SosAlertOnFireDialog;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.StringTokenizer;
 
 public class ScreenReceiver extends BroadcastReceiver {
 
@@ -71,15 +73,35 @@ public class ScreenReceiver extends BroadcastReceiver {
                     Intent dialogIntent = new Intent(context, SosAlertOnFireDialog.class);
                     dialogIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(dialogIntent);
-                    //SMS to all
                     String myemergencyContacts = Storage.getEmergencyContacts(context);
-                    AddressResultReceiver.smsToAll(Storage.getEmergencyContactsList(context), null, null);
-                    Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
-                    String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_AllContact;
-                    locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
-                    locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
-                    locationCordinatesIntent.putExtra(GetLocationCordinatesService.myemergencyContactsNumbers,myemergencyContacts);//myemergencyContacts
-                    context.startService(locationCordinatesIntent);
+                    MainActivity.sosAlertOnFire = true;
+                    //SMS to all
+                    if(Storage.isLocationTrackerOn(context)){//Use last known location
+                        //List<String> myemergencyContactsList, String address, String cordinates
+                        StringTokenizer tokenizer = new StringTokenizer(myemergencyContacts, ",") ;
+                        List<String> myemergencyContactsList = new ArrayList<String>();
+                        while(tokenizer.hasMoreTokens()){
+                            String number = tokenizer.nextToken();
+                            if(null != number && number.trim().length() > 0){
+                                myemergencyContactsList.add(number);
+                            }
+
+                        }
+                        String lastKnownLocation = Storage.getFromDB(Storage.lastKnownLocation,context);
+                        lastKnownLocation += " at "+Storage.getFromDB(Storage.lastKnownLocationTime,context);
+                        String address = Storage.getFromDB(Storage.lastKnownLocationAddress,context);
+                        AddressResultReceiver.smsToAll(myemergencyContactsList, address, lastKnownLocation);
+                    }else {
+
+                        AddressResultReceiver.smsToAll(Storage.getEmergencyContactsList(context), null, null);
+                        Intent locationCordinatesIntent = new Intent(context, GetLocationCordinatesService.class);
+                        String  ChainOfDuty = GetLocationCordinatesService.ChainOfDuty_Address+","+GetLocationCordinatesService.ChainOfDuty_SMS_AllContact;
+                        locationCordinatesIntent.putExtra(GetLocationCordinatesService.ChainOfDuty, ChainOfDuty);
+                        locationCordinatesIntent.putExtra(MainActivity.orignationActivityName, SOSAlert);
+                        locationCordinatesIntent.putExtra(GetLocationCordinatesService.myemergencyContactsNumbers,myemergencyContacts);//myemergencyContacts
+                        context.startService(locationCordinatesIntent);
+                    }
+
 
                 }
             } else {

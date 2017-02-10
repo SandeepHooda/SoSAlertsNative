@@ -139,7 +139,7 @@
         android:layout_marginTop="30dp"
         android:layout_marginLeft="5dp"
         android:textSize="14dp"
-        android:text="Use only Android location manager"
+        android:text="Use GPS first"
         />
     <ToggleButton
         android:id="@+id/speakLocation"

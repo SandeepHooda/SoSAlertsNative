@@ -30,6 +30,7 @@ public class Storage {
     public static final String useAndroidLocation = "useAndroidLocation";
     public static final String lastKnownLocation = "lastKnownLocation";
     public static final String lastKnownLocationTime = "lastKnownLocationTime";
+    public static final String lastKnownLocationAddress = "lastKnownLocationAddress";
     public static final String lastKnownLocationDistance = "lastKnownLocationDistance";
     public static final String currentAction = "currentAction";
     public static final String savedContacts = "savedContacts";
