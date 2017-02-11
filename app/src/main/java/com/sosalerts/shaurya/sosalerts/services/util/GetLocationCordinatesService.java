@@ -105,8 +105,9 @@ public class GetLocationCordinatesService extends IntentService  {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.e(fileName, " Start location hunt! "+checkIfTrackingEnabled());
-        if(!checkIfTrackingEnabled()){
+        boolean trackingEnabled = checkIfTrackingEnabled();
+        Log.e(fileName, " Start location hunt! "+trackingEnabled);
+        if(!trackingEnabled){
             return;
         }
 

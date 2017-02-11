@@ -93,16 +93,21 @@ public class LocationTrackerIntentService extends IntentService {
             if(previousLocation != null){// So that the when app starts for the firs time we can ignore this code
                 //if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
                     if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
+                        long entryTime = markEntryToLocationInDB(currentLocation);
+
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation+" entered time "+entryTime);
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
                         sendSMSToAll("Entering "+currentLocation+" "+locationLink );
                     }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
+
+                        long averageTime  = markExitFromLocationInDB(previousLocation);
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation + " Average stay "+averageTime);
+
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
                         sendSMSToAll("Exiting "+previousLocation+" "+locationLink);
@@ -113,7 +118,41 @@ public class LocationTrackerIntentService extends IntentService {
             previousLocation = currentLocation;
         }
     }
+    private long markEntryToLocationInDB(String location){
+        try{
+            //1. Extract the tracker vo
+            String locationTrackerStr = Storage.getFromDB(Storage.averageStayAtLocation+"_"+location,getApplicationContext());
+            //2. Create a location tracker and add details frm db to this object
+            LocationTrackerVO locationTrackerVO = new LocationTrackerVO();
+            locationTrackerVO.fillInDetailsFromLocationStr(locationTrackerStr, locationTrackerVO);
+            //3. Record this entry time to the VO
+            locationTrackerVO.setEntryTime(new Date().getTime());
+            //4. Store back that Vo to DB
+            Storage.storeinDB(Storage.averageStayAtLocation+"_"+location,locationTrackerVO.toString(),getApplicationContext());
+            return locationTrackerVO.getEntryTime();
+        }catch(Exception e){
 
+        }
+       return -1;
+    }
+
+    private long markExitFromLocationInDB(String location){
+        try{
+            //1. Extract the tracker vo
+            String locationTrackerStr = Storage.getFromDB(Storage.averageStayAtLocation+"_"+location,getApplicationContext());
+            //2. Create a location tracker and add details frm db to this object
+            LocationTrackerVO locationTrackerVO = new LocationTrackerVO();
+            locationTrackerVO.fillInDetailsFromLocationStr(locationTrackerStr, locationTrackerVO);
+            //3. Calculate average time
+            locationTrackerVO.calculateAndSetAverageMinutesAtLocation(locationTrackerVO);
+            //4. Store back that Vo to DB
+            Storage.storeinDB(Storage.averageStayAtLocation+"_"+location,locationTrackerVO.toString(),getApplicationContext());
+            return (locationTrackerVO.getAverageStayInMin() /60);
+        }catch(Exception e){
+
+        }
+        return -1;
+    }
     private void sendSMSToAll(String text){
         SmsManager smsManager = SmsManager.getDefault();
         List<String> emergencyPhones = Storage.getEmergencyContactsList(getApplicationContext());

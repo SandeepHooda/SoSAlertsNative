@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
  */
 
 public class Storage {
+    public static final String averageStayAtLocation = "averageStayAtLocation_";
     public static final String batteryLevel = "batteryLevel";
     public static final String savedLocations = "SavedLocations";
     public static final String speakLocation = "speakLocation";
