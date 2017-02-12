@@ -33,6 +33,7 @@ public class SettingsTab extends Fragment {
     public static double safeZoneBoundrySettings = Storage.settingsSafeZoneBoundryDefault;
     public static String locationTrackerFrequencySettings = Storage.settingsLocationTrackerFrequencyDefault;
 
+
     private String getLocationButtontext(){
         String location = Storage.getFromDB(Storage.lastKnownLocationDistance,getActivity())+"\n"+ Storage.getFromDB(Storage.lastKnownLocationTime,getActivity());
 
@@ -207,9 +208,22 @@ public class SettingsTab extends Fragment {
         });
         speakLocation.setChecked(Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getActivity())));
 
+        //Smart battery saver
+        final ToggleButton smartBatterySaver = (ToggleButton) view.findViewById(R.id.smartBatteryMode);
+        smartBatterySaver.setHintTextColor(Color.WHITE);
+        smartBatterySaver.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.e(fileName, "smartBatterySaver  "+isChecked);
+                Storage.storeinDB(Storage.smartbatteryMode,""+isChecked,getActivity());
+
+            }
+        });
+        smartBatterySaver.setChecked(Boolean.parseBoolean(Storage.getFromDB(Storage.smartbatteryMode,getActivity())));
+
 
         return view;
     }
+
 
 
 }

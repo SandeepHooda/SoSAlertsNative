@@ -11,6 +11,7 @@ import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.services.util.GetLocationCordinatesService;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ public class LocationTrackerIntentService extends IntentService {
     private static String currentLocation = null;
     public static final String unknownLocation = "Unknown";
     private static Date knownLocationTimeEvent = null;
+    public static long donotTrackUntillTime = 0;
 
     private final String fileName = this.getClass().getSimpleName();
     public LocationTrackerIntentService(){
@@ -119,6 +121,12 @@ public class LocationTrackerIntentService extends IntentService {
         }
     }
     private long markEntryToLocationInDB(String location){
+        Calendar cal = Calendar.getInstance();
+        Date today = new Date();
+        cal.setTime(today);
+        if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY){
+          return -100;
+        }
         try{
             //1. Extract the tracker vo
             String locationTrackerStr = Storage.getFromDB(Storage.averageStayAtLocation+"_"+location,getApplicationContext());
@@ -129,6 +137,11 @@ public class LocationTrackerIntentService extends IntentService {
             locationTrackerVO.setEntryTime(new Date().getTime());
             //4. Store back that Vo to DB
             Storage.storeinDB(Storage.averageStayAtLocation+"_"+location,locationTrackerVO.toString(),getApplicationContext());
+            //5 If average stay is known then set that time
+            int avegargeStay = (int) locationTrackerVO.getAverageStayInMin();
+            avegargeStay = avegargeStay - (1000 * 60*60);//minus 2 hour
+            cal.add(Calendar.MINUTE,avegargeStay );
+            donotTrackUntillTime = cal.getTimeInMillis();
             return locationTrackerVO.getEntryTime();
         }catch(Exception e){
 
@@ -137,6 +150,12 @@ public class LocationTrackerIntentService extends IntentService {
     }
 
     private long markExitFromLocationInDB(String location){
+        Calendar cal = Calendar.getInstance();
+        Date today = new Date();
+        cal.setTime(today);
+        if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY){
+            return -100;
+        }
         try{
             //1. Extract the tracker vo
             String locationTrackerStr = Storage.getFromDB(Storage.averageStayAtLocation+"_"+location,getApplicationContext());

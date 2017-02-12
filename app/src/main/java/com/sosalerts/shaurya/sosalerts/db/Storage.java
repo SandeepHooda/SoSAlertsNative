@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.R;
+import com.sosalerts.shaurya.sosalerts.services.locationTracker.LocationTrackerIntentService;
 import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 
@@ -46,9 +47,10 @@ public class Storage {
     public static final String countryCodeLocation  = "countryCodeLocation";
     private static final String dbName = "activity.getStringR.string.saved_location_db";
     public static  double settingsSafeZoneBoundryDefault = 500;
-    public static final int settingsPowerButtonCountDefault = 5;
-    public static  final String settingsLocationTrackerFrequencyDefault = "All Days";
-    private static Calendar cal = Calendar.getInstance();
+    public static final int settingsPowerButtonCountDefault = 7;
+    public static  final String settingsLocationTrackerFrequencyDefault = "Week days";
+    public static final String smartbatteryMode = "smartbatteryMode";
+
 
     private static final String fileName = Storage.class.getSimpleName();
 
@@ -176,6 +178,22 @@ public class Storage {
     }
 
     public static boolean isLocationTrackerOn( Context activity){
+        Date today = new Date();
+        Calendar now = Calendar.getInstance();
+        now.setTime(today);
+
+        if (Boolean.parseBoolean(Storage.getFromDB(Storage.smartbatteryMode,activity))){
+            Log.e(fileName, "Smart battery saver is on");
+            Calendar trackingOffUntil = Calendar.getInstance();
+            trackingOffUntil.setTimeInMillis(LocationTrackerIntentService.donotTrackUntillTime);
+            if(now.before(trackingOffUntil)){
+                return false;
+            }
+        }else{
+            Log.e(fileName, "Smart battery saver is off");
+        }
+
+
         String batteryLevelStr = getFromDB(Storage.batteryLevel,  activity);
         float batteryLevel = 100;
         try{
@@ -186,18 +204,16 @@ public class Storage {
         if(batteryLevel < 20) {
             return false;
         }
-        SharedPreferences sharedPref = activity.getSharedPreferences(dbName+settingsLocationAutoUpdates,activity.MODE_PRIVATE);
-        String frequency =  sharedPref.getString(settingsLocationAutoUpdates, null);
+        String frequency = getFromDB(settingsLocationTrackerFrequency,activity);
         if ( "off".equalsIgnoreCase(frequency)){
             return false;
         }else {
             if ("Week days".equalsIgnoreCase(frequency)){
-                Date today = new Date();
-                cal.setTime(today);
-                if (cal.get(Calendar.DAY_OF_WEEK) >=Calendar.MONDAY && cal.get(Calendar.DAY_OF_WEEK)<=Calendar.FRIDAY){
-                    return true;
-                }else {
+
+                if (now.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || now.get(Calendar.DAY_OF_WEEK)== Calendar.SUNDAY){
                     return false;
+                }else {
+                    return true;
                 }
             }
             return true;

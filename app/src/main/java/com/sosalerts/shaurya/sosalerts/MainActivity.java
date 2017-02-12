@@ -30,9 +30,12 @@ import com.sosalerts.shaurya.sosalerts.services.util.ReadOut;
 import com.sosalerts.shaurya.sosalerts.tabs.ContactsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.LocationsTab;
 import com.sosalerts.shaurya.sosalerts.tabs.PagerAdapter;
+import com.sosalerts.shaurya.sosalerts.tabs.SettingsTab;
+
 import android.Manifest;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
     private Location mLastLocation;
     public static final String orignationActivityName = "orignationActivityName";
     private String intentOriginator;
+    private  ViewPager viewPager = null;
 
     // Google client to interact with Google API
     private GoogleApiClient mGoogleApiClient;
@@ -234,8 +238,8 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
         tabLayout.addTab(tabLayout.newTab().setText("Settings"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
 
+        viewPager = (ViewPager) findViewById(R.id.pager);
         final PagerAdapter adapter = new PagerAdapter
                 (getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
@@ -263,6 +267,10 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
         if (ContactsTab.actionName.equals(tabName)){
             viewPager.setCurrentItem(0);
         }
+        if (SettingsTab.actionName.equals(tabName)){
+            viewPager.setCurrentItem(2);
+        }
+
 
     }
 
@@ -292,6 +300,22 @@ public class MainActivity extends AppCompatActivity implements AddressResultRece
             }
 
         }
+
+    }
+    public void resetDefaultSettings(View view) {
+
+        Storage.storeinDB(Storage.replyToFindMyPhone,"true", this);
+        Storage.storeinDB(Storage.settingsreplyToWhereAreYou,"true", this);
+        Storage.storeinDB(Storage.settingsPowerButtonCount,""+Storage.settingsPowerButtonCountDefault,this);
+        Storage.storeinDB(Storage.settingsSafeZoneBoundry,""+Storage.settingsSafeZoneBoundryDefault,this);
+        Storage.storeinDB(Storage.settingsLocationTrackerFrequency,Storage.settingsLocationTrackerFrequencyDefault,this);
+        Storage.storeinDB(Storage.speakLocation,"false",this);
+        Storage.storeinDB(Storage.smartbatteryMode,"false", this);
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra(orignationActivityName, SettingsTab.actionName);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
 
     }
 }
