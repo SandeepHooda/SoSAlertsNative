@@ -47,14 +47,15 @@ public class LocationTrackerVO {
         long currentStayInMinutes = ((new Date().getTime() - entryTime)/(1000*60));
         if(entryTime ==0){
            // return -1; //Invalid because no entry time
-        }else if (currentStayInMinutes > 20*60) {
-            //return -2; //Invalid because difference is more that 20 hours
+        }else if ((currentStayInMinutes > 20*60) || currentStayInMinutes < 60){
+            //return -2; //Invalid because difference is more that 20 hours or less that 1 hour
 
         }else {
             //return stayInMinutes;
             long averageStayInMin = location.getAverageStayInMin();
             int noOfSamples = location.getNoOfSamples();
             location.setAverageStayInMin( ( (averageStayInMin*noOfSamples)+currentStayInMinutes) /(noOfSamples+1));
+            location.setNoOfSamples(noOfSamples+1);
         }
 
     }

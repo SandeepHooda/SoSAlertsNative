@@ -10,16 +10,17 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.sosalerts.shaurya.sosalerts.MainActivity;
 import com.sosalerts.shaurya.sosalerts.db.Storage;
 import com.sosalerts.shaurya.sosalerts.services.address.AddressResultReceiver;
@@ -40,11 +41,11 @@ import java.util.List;
  * Created by shaurya on 1/26/2017.
  */
 
-public class GetLocationCordinatesService extends IntentService  {
+public class GetLocationCordinatesService extends IntentService  implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
     // Google client to interact with Google API
 
     private LocationManager locManager;
-
+    private GoogleApiClient mGoogleApiClient;
     private LocationListener locManagerLocationListener;
     private final String fileName = this.getClass().getSimpleName();
     private Location mLastLocation;
@@ -111,70 +112,75 @@ public class GetLocationCordinatesService extends IntentService  {
             return;
         }
 
+        if (checkPlayServices()) {
+            buildGoogleApiClient();
+        }
         String nextChainOfDuty = intent.getStringExtra(ChainOfDuty);
 
-        if (!locSearchResultReceived && nextChainOfDuty == null) {//Previous searc is not complete
+        if (!locSearchResultReceived && nextChainOfDuty == null) {//Previous search is not complete and since nextChainOfDuty is null this is not emergency call
             Log.e(fileName, " Previous search didn't complete yet ");
-            //Chain of duty is null for locatin tracker request not for SOS alerts
-            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
-                Intent speakIntent = new Intent(this, ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak," Previous search didn't complete yet  ");
-                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                startService(speakIntent);
-            }
             return;
         }
-        if(locationManagerObjectList.size()  > 0){
-            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
-                Intent speakIntent = new Intent(this, ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak," Disaster Previous search didn't complete yet  ");
-                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                startService(speakIntent);
-            }
-        }else {
-            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
-                Intent speakIntent = new Intent(this, ReadOut.class);
-                speakIntent.putExtra(ReadOut.textToSpeak," No previous request starting new search. ");
-                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-                startService(speakIntent);
-            }
-        }
-        Log.e(fileName, " No previous search ");
 
-            clearPreviousListners();
+       clearPreviousListners();
 
 
         this.intent = intent;
         locManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        getLocationWithBestProvider(nextChainOfDuty);
-
-
+        mGoogleApiClient.connect();//Try with fused location fist
     }
 
-    private void getLocationWithBestProvider(String nextChainOfDuty){
+    private void getGPSLocation(String nextChainOfDuty){
         List<String> providerChain = new ArrayList<String>();
-        if (Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation,this))){
-            Log.e(fileName, " Using GPS first always");
-            providerChain.add(LocationManager.GPS_PROVIDER);
-            providerChain.add(LocationManager.NETWORK_PROVIDER);
-        }else {
-            if(null == LocationTrackerIntentService.previousLocation || LocationTrackerIntentService.unknownLocation.equals(LocationTrackerIntentService.previousLocation)){
-                //Unknown area - Most probably out side of buiulding so user GPS then cell
-                providerChain.add(LocationManager.GPS_PROVIDER);
-                //providerChain.add(LocationManager.NETWORK_PROVIDER);
-            }else {
-                //Known area - Most probably in side of buiulding so user Cell then GPS
-                //providerChain.add(LocationManager.NETWORK_PROVIDER);
-                providerChain.add(LocationManager.GPS_PROVIDER);
-            }
+        providerChain.add(LocationManager.GPS_PROVIDER);
+        locSearchResultReceived = false;
+        boolean isEmergency = (nextChainOfDuty == null) ? false:true;
+        getLocationViaProviderChain(providerChain, isEmergency);
+    }
+    private void getLocationViaProviderChain(List<String> providerChain, boolean isEmergency) {
+        if(isEmergency){
+            getLastKnownLocation();
+        }
+        Log.e(fileName, " chain of provider "+providerChain+" locSearchResultReceived ? "+locSearchResultReceived);
+
+        clearPreviousListners();
+
+        if(null == providerChain || providerChain.size() ==0 || locSearchResultReceived) {
+
+            locSearchResultReceived = true;
+            return;
+        }
+        String provider = providerChain.get(0);
+        if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
+            Intent speakIntent = new Intent(this, ReadOut.class);
+            String textToSpeak = " Trying with "+provider;
+
+            speakIntent.putExtra(ReadOut.textToSpeak,textToSpeak);
+            speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+            startService(speakIntent);
+        }
+        Log.e(fileName, " Attempt to get location via  "+provider);
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        locManagerLocationListener = getListner(provider);
+        LocationManagerObject obj = new LocationManagerObject();
+        obj.setLocManager(locManager);
+        obj.getListners().add(locManagerLocationListener);
+        synchronized (this){
+            locationManagerObjectList.add(obj);
         }
 
 
-        locSearchResultReceived = false;
-        boolean isEmergency = (nextChainOfDuty == null) ? false:true;
-        getLocationViaProvider(providerChain, isEmergency);
+        providerChain.remove(0);
+        locManager.requestLocationUpdates(provider, 0, 0, locManagerLocationListener);
+
+        removeGpsListner(new RemoveListnerTask(providerChain));
     }
+
     private LocationListener getListner(String type){
         final String locationProvider = type;
         return new LocationListener() {
@@ -205,73 +211,8 @@ public class GetLocationCordinatesService extends IntentService  {
         Location locationGPS= locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         processLocationResults("Network Last known GPS ", locationGPS, true);
     }
-    private void getLocationViaProvider(List<String> providerChain, boolean isEmergency) {
-        if(isEmergency){
-            getLastKnownLocation();
-        }
-        Log.e(fileName, " chain of provider "+providerChain+" locSearchResultReceived ? "+locSearchResultReceived);
-
-         clearPreviousListners();
-
-        if(null == providerChain || providerChain.size() ==0 || locSearchResultReceived) {
-
-            locSearchResultReceived = true;
-            return;
-        }
-        String provider = providerChain.get(0);
-        if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
-            Intent speakIntent = new Intent(this, ReadOut.class);
-            String textToSpeak = " Trying with "+provider;
-           /* if(providerChain.size() > 1){
-                textToSpeak+=". Now I will try with "+providerChain.get(1);
-            }else {
-                textToSpeak +=". Nothing more to try";
-            }*/
-            speakIntent.putExtra(ReadOut.textToSpeak,textToSpeak);
-            speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
-            startService(speakIntent);
-        }
-        Log.e(fileName, " Attempt to get location via  "+provider);
 
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-
-        locManagerLocationListener = getListner(provider);
-        LocationManagerObject obj = new LocationManagerObject();
-        obj.setLocManager(locManager);
-        obj.getListners().add(locManagerLocationListener);
-        synchronized (this){
-            locationManagerObjectList.add(obj);
-        }
-
-
-        providerChain.remove(0);
-        locManager.requestLocationUpdates(provider, 0, 0, locManagerLocationListener);
-        /*sleepTask = new WaitForProviderToGetResults();
-        sleepTask.execute(providerChain);//Remove listner after waiting enough for result*/
-        removeGpsListner(new RemoveListnerTask(providerChain));
-    }
-
-
-    /*private  class WaitForProviderToGetResults extends AsyncTask<List<String>, Void, List<String>>{
-
-
-        @Override
-        protected List<String> doInBackground(List<String>... providerChain) {
-            try {
-                Thread.sleep(1000*10);
-            } catch (InterruptedException e) {
-
-            }
-
-           return providerChain[0];
-        }
-        protected void onPostExecute(List<String> providerChain) {
-            getLocationViaProvider(providerChain, false);
-        }
-    }*/
 
     private  class RemoveListnerTask implements Runnable{
       private List<String> providerChain;
@@ -287,7 +228,7 @@ public class GetLocationCordinatesService extends IntentService  {
             }
 
             Log.e("RemoveListnerTask","Removed GPS listner after sleep ###");
-            getLocationViaProvider(providerChain, false);
+            getLocationViaProviderChain(providerChain, false);
         }
     }
     private static void removeGpsListner(final Runnable runnable){
@@ -425,5 +366,61 @@ public class GetLocationCordinatesService extends IntentService  {
 
     }
 
+    private boolean checkPlayServices() {
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+        int resultCode = googleAPI.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (googleAPI.isUserResolvableError(resultCode)) {
+            } else {
+                //Toast.makeText(getApplicationContext(),     "This device is not supported.", Toast.LENGTH_LONG).show();
 
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Creating google api client object
+     * */
+    protected synchronized void buildGoogleApiClient() {
+
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API).build();
+        }
+
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(null != mLastLocation && isLocationRecent(mLastLocation.getTime())){
+
+            if(null != mGoogleApiClient && mGoogleApiClient.isConnected()){
+                mGoogleApiClient.disconnect();
+            }
+
+            processLocationResults("Fused api", mLastLocation, false);
+        }else {
+            getGPSLocation(intent.getStringExtra(ChainOfDuty));
+        }
+
+    }
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+    @Override
+    public void onConnectionSuspended(int arg0) {
+        mGoogleApiClient.connect();
+    }
 }

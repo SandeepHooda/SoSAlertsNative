@@ -91,15 +91,25 @@ public class LocationTrackerIntentService extends IntentService {
                 }
             }
 
+            if (previousLocation == null){//If app crashes and comes up again use the last saved location
+                previousLocation = Storage.getFromDB(Storage.lastKnownLocationName,getApplicationContext());
+            }
+            Storage.storeinDB(Storage.lastKnownLocationName,currentLocation,getApplicationContext());
             Log.e(fileName, "currentLocation  "+currentLocation +" previousLocation "+previousLocation);
-            if(previousLocation != null){// So that the when app starts for the firs time we can ignore this code
+            if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
+                Intent speakIntent = new Intent(this, ReadOut.class);
+                speakIntent.putExtra(ReadOut.textToSpeak,"Previous location "+previousLocation +" current location "+currentLocation+" calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));
+                speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
+                startService(speakIntent);
+            }
+            if(previousLocation != null){// So that the when app starts for the first time after install we can ignore this code
                 //if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
                     if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
                         long entryTime = markEntryToLocationInDB(currentLocation);
 
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation+" entered time "+entryTime);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation);
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
                         sendSMSToAll("Entering "+currentLocation+" "+locationLink );
@@ -108,7 +118,7 @@ public class LocationTrackerIntentService extends IntentService {
                         long averageTime  = markExitFromLocationInDB(previousLocation);
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);
-                        speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation + " Average stay "+averageTime);
+                        speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation + " Average stay "+averageTime+" hours");
 
                         speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                         startService(speakIntent);
