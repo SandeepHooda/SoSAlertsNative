@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SOSAlerts</string>
+    <string name="app_name">SOS Alerts</string>
     <string name="location_name">LocationName</string>
     <string name="location_name_hint">Where are you right now?</string>
     <string name="save_location">Save</string>
