@@ -105,6 +105,7 @@ public class LocationTrackerIntentService extends IntentService {
             if(previousLocation != null){// So that the when app starts for the first time after install we can ignore this code
                 //if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
                     if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
+                        Storage.storeinDB(Storage.mostRecentExitOrEnterTime,""+(new Date().getTime()),getApplicationContext());
                         long entryTime = markEntryToLocationInDB(currentLocation);
 
                         knownLocationTimeEvent = new Date();
@@ -114,7 +115,7 @@ public class LocationTrackerIntentService extends IntentService {
                         startService(speakIntent);
                         sendSMSToAll("Entering "+currentLocation+" "+locationLink );
                     }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
-
+                        Storage.storeinDB(Storage.mostRecentExitOrEnterTime,""+(new Date().getTime()),getApplicationContext());
                         long averageTime  = markExitFromLocationInDB(previousLocation);
                         knownLocationTimeEvent = new Date();
                         Intent speakIntent = new Intent(this, ReadOut.class);

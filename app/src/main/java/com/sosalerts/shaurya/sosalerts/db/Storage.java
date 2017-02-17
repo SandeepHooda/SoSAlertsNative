@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
  */
 
 public class Storage {
+    public static final String mostRecentExitOrEnterTime = "mostRecentExitOrEnterTime";
     public static final String averageStayAtLocation = "averageStayAtLocation_";
     public static final String batteryLevel = "batteryLevel";
     public static final String savedLocations = "SavedLocations";
@@ -182,6 +183,15 @@ public class Storage {
         Date today = new Date();
         Calendar now = Calendar.getInstance();
         now.setTime(today);
+
+        String recentEnterExitTime =  Storage.getFromDB(Storage.mostRecentExitOrEnterTime,activity);
+        if(null != recentEnterExitTime && !"".equals(recentEnterExitTime.trim())){
+            long recentEnterExit_Time = Long.parseLong(recentEnterExitTime);
+            if((today.getTime()- recentEnterExit_Time) < 1000*60*10){//Switch of location tracking for 10 minutes after we enter or exit from known location
+                return false;
+            }
+        }
+
 
         if (Boolean.parseBoolean(Storage.getFromDB(Storage.smartbatteryMode,activity))){
             Log.e(fileName, "Smart battery saver is on");
