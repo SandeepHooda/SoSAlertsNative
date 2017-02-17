@@ -59,7 +59,9 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="95dp"
         android:entries="@array/power_button_array"
-        android:prompt="@string/power_button_prompt"/>
+        android:prompt="@string/power_button_prompt"
+        android:popupBackground="@color/popupBackgroundColor"
+        />
     <TextView
         android:id="@+id/powerbuttonCount_text"
         android:layout_width="wrap_content"
@@ -82,7 +84,8 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="145dp"
         android:entries="@array/safe_zone_array"
-        android:prompt="@string/power_button_prompt"/>
+        android:prompt="@string/power_button_prompt"
+        android:popupBackground="@color/popupBackgroundColor"/>
     <TextView
         android:id="@+id/safeZoneBoundry_text"
         android:layout_width="wrap_content"
@@ -105,7 +108,8 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="195dp"
         android:entries="@array/locationTrackerFrequency_array"
-        android:prompt="@string/power_button_prompt"/>
+        android:prompt="@string/power_button_prompt"
+        android:popupBackground="@color/popupBackgroundColor"/>
     <TextView
         android:id="@+id/locationTrackerFrequency_text"
         android:layout_width="wrap_content"
@@ -118,8 +122,9 @@
         android:textSize="14dp"
         android:text="Auto updates for the saved locations"
         />
+
     <ToggleButton
-        android:id="@+id/useAndroidLocation"
+        android:id="@+id/speakLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -130,34 +135,11 @@
         android:textOff="Off"
         android:textOn="On" />
     <TextView
-        android:id="@+id/useAndroidLocation_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/locationTrackerFrequency"
-        android:layout_below="@id/locationTrackerFrequency_text"
-        android:textColor="@android:color/white"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="5dp"
-        android:textSize="14dp"
-        android:text="Use GPS first"
-        />
-    <ToggleButton
-        android:id="@+id/speakLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_below="@id/useAndroidLocation"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="280dp"
-        android:textOff="Off"
-        android:textOn="On" />
-    <TextView
         android:id="@+id/speakLocation_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/speakLocation"
-        android:layout_below="@id/useAndroidLocation_text"
+        android:layout_below="@id/locationTrackerFrequency_text"
         android:textColor="@android:color/white"
         android:layout_marginTop="30dp"
         android:layout_marginLeft="5dp"
@@ -172,7 +154,7 @@
         android:layout_alignParentTop="true"
         android:layout_below="@id/speakLocation"
         android:layout_marginLeft="5dp"
-        android:layout_marginTop="330dp"
+        android:layout_marginTop="280dp"
         android:textOff="Off"
         android:textOn="On" />
     <TextView

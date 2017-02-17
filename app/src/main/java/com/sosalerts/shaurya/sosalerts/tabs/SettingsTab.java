@@ -181,7 +181,7 @@ public class SettingsTab extends Fragment {
 
         }
 
-        //use android location API
+       /* //use android location API
         ToggleButton useAndroidLocation = (ToggleButton) view.findViewById(R.id.useAndroidLocation);
         useAndroidLocation.setHintTextColor(Color.WHITE);
         useAndroidLocation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -193,7 +193,7 @@ public class SettingsTab extends Fragment {
             }
         });
         useAndroidLocationSettings = Boolean.parseBoolean(Storage.getFromDB(Storage.useAndroidLocation,getActivity()));
-        useAndroidLocation.setChecked(useAndroidLocationSettings);
+        useAndroidLocation.setChecked(useAndroidLocationSettings);*/
 
         //Speak location
         ToggleButton speakLocation = (ToggleButton) view.findViewById(R.id.speakLocation);
