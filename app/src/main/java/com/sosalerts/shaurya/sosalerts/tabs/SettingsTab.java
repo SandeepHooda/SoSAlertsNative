@@ -34,14 +34,7 @@ public class SettingsTab extends Fragment {
     public static String locationTrackerFrequencySettings = Storage.settingsLocationTrackerFrequencyDefault;
 
 
-    private String getLocationButtontext(){
-        String location = Storage.getFromDB(Storage.lastKnownLocationDistance,getActivity())+"\n"+ Storage.getFromDB(Storage.lastKnownLocationTime,getActivity());
 
-        if(null != location && location.indexOf("@") >0){
-            location = location.substring(location.indexOf("@")+1);
-        }
-        return location;
-    }
     @Override
     public void onResume() {
         super.onResume();

@@ -250,8 +250,9 @@ public class GetLocationCordinatesService extends IntentService  implements Goog
 
 
 
-    private boolean isLocationRecent(long locationTime){
-        return ((new Date().getTime() - locationTime)  < 1000 * 60 );
+    private boolean isLocationRecentAndAccurate(Location location){
+        if(location.getAccuracy() > 100) return false;
+        return ((new Date().getTime() - location.getTime())  < 1000 * 60 );
     }
 
 
@@ -293,7 +294,7 @@ public class GetLocationCordinatesService extends IntentService  implements Goog
                 }
 
                 //Perioid Alarm to get location
-                if(isLocationRecent(mLastLocation.getTime())){
+                if(isLocationRecentAndAccurate(mLastLocation)){
                     String texttoSpeak = locationProvider+" Got your location with accuracy "+mLastLocation.getAccuracy();
                     Log.e(fileName,texttoSpeak);
                     if (Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation,getApplicationContext() ))) {
@@ -403,7 +404,7 @@ public class GetLocationCordinatesService extends IntentService  implements Goog
 
 
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if(null != mLastLocation && isLocationRecent(mLastLocation.getTime())){
+        if(null != mLastLocation && isLocationRecentAndAccurate(mLastLocation)){
 
             if(null != mGoogleApiClient && mGoogleApiClient.isConnected()){
                 mGoogleApiClient.disconnect();
