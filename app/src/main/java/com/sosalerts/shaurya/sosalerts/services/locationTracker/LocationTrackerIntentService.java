@@ -96,15 +96,25 @@ public class LocationTrackerIntentService extends IntentService {
                     }
                 }
 
-                if(!unknownLocation.equals(locationName)){
+                if(!unknownLocation.equals(locationName) && distanceStr != null && !distanceStr.trim().equals("")){
                     int[] distanceArray = locationTrackerMap.get(locationName);
                     if (null == distanceArray){
                         distanceArray = new int[3];
-                        distanceArray[0] = Integer.parseInt(distanceStr);
+                        try{
+                            distanceArray[0] = Integer.parseInt(distanceStr.trim());
+                        }catch(Exception e){
+
+                        }
+
                     }else {
                         distanceArray[2]= distanceArray[1];
                         distanceArray[1]= distanceArray[0];
-                        distanceArray[0] = Integer.parseInt(distanceStr);
+                        try{
+                            distanceArray[0] = Integer.parseInt(distanceStr.trim());
+                        }catch(Exception e){
+
+                        }
+
 
                     }
                     locationTrackerMap.put(locationName,distanceArray);
@@ -126,6 +136,9 @@ public class LocationTrackerIntentService extends IntentService {
             Log.e(fileName, "currentLocation  "+currentLocation +" previousLocation "+previousLocation);
             if ( Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                 int[] distanceArray = locationTrackerMap.get(currentLocation);
+                if (null == distanceArray){
+                    distanceArray = new int[3];
+                }
                 Intent speakIntent = new Intent(this, ReadOut.class);
                 speakIntent.putExtra(ReadOut.textToSpeak,"Previous location "+previousLocation +" current location "+currentLocation+" Accuracy "+mLastLocation.getAccuracy()
                         +" calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE)+" speed "+mLastLocation.getSpeed()
@@ -156,6 +169,9 @@ public class LocationTrackerIntentService extends IntentService {
 
                         if (mLastLocation.getSpeed() > 0 ){
                             int[] distanceArray = locationTrackerMap.get(currentLocation);
+                            if (null == distanceArray){
+                                distanceArray = new int[3];
+                            }
                             if ((distanceArray[0] > distanceArray[1] ) &&( distanceArray[1] > distanceArray[2])){
                                 changeOfLocation = true;
                                 //speakLocation = true;
