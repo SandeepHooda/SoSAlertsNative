@@ -28,7 +28,7 @@ public class LocationTrackerIntentService extends IntentService {
     private static Date knownLocationTimeEvent = null;
     public static long donotTrackUntillTime = 0;
     //private static int locationChangeEventCounts = 0;
-    private static boolean speakLocation;
+    //private static boolean speakLocation;
 
     private final String fileName = this.getClass().getSimpleName();
     public LocationTrackerIntentService(){
@@ -85,13 +85,13 @@ public class LocationTrackerIntentService extends IntentService {
                 }
 
                 double safeRadius = safeZoneBoundrySettings;
-                /*if(previousLocation != null){
+                if(previousLocation != null){
                     if(unknownLocation.equals(previousLocation)){//unknown location
-                        //safeRadius = safeZoneBoundrySettings;
+                        safeRadius = safeZoneBoundrySettings + 300; //whiling entering anounce the event a bit earlier
                     }else{//known location
                         safeRadius = safeZoneBoundrySettings+ (mLastLocation.getAccuracy()*1.5);
                     }
-                }*/
+                }
 
 
                 if (distance < safeRadius){
@@ -108,52 +108,58 @@ public class LocationTrackerIntentService extends IntentService {
             }
             Storage.storeinDB(Storage.lastKnownLocationName,currentLocation,getApplicationContext());
             Log.e(fileName, "currentLocation  "+currentLocation +" previousLocation "+previousLocation);
-            if (speakLocation ||
-
-
-                    Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
+            if ( Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                 Intent speakIntent = new Intent(this, ReadOut.class);
                 speakIntent.putExtra(ReadOut.textToSpeak,"Previous location "+previousLocation +" current location "+currentLocation+" Accuracy "+mLastLocation.getAccuracy()
-                        +" calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));
+                        +" calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE)+" speed "+mLastLocation.getSpeed());
                 speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                 startService(speakIntent);
             }
-            speakLocation = false;
-            if(previousLocation != null){// So that the when app starts for the first time after install we can ignore this code
+            boolean changeOfLocation = false;
+            //speakLocation = false;
+            if(previousLocation != null && Storage.isLocationTrackerOn(getApplicationContext())){// So that the when app starts for the first time after install we can ignore this code
                 //if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
                     if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
-                            speakLocation = true;
+                        changeOfLocation = true;
+                            //speakLocation = true;
                             Storage.storeinDB(Storage.mostRecentExitOrEnterTime,""+(new Date().getTime()),getApplicationContext());
                             long entryTime = markEntryToLocationInDB(currentLocation);
 
                             knownLocationTimeEvent = new Date();
                             Intent speakIntent = new Intent(this, ReadOut.class);
                             speakIntent.putExtra(ReadOut.textToSpeak,"Entering "+currentLocation+" Accuracy "+mLastLocation.getAccuracy() +
-                                    " calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));
+                                    " calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE)+" speed "+mLastLocation.getSpeed());
                             speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                             startService(speakIntent);
                             sendSMSToAll("Entering "+currentLocation+" "+locationLink );
 
 
                     }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
-                            speakLocation = true;
+                        if (mLastLocation.getSpeed() > 0){
+                            changeOfLocation = true;
+                            //speakLocation = true;
                             //Storage.storeinDB(Storage.mostRecentExitOrEnterTime,""+(new Date().getTime()),getApplicationContext());
                             long averageTime  = markExitFromLocationInDB(previousLocation);
                             knownLocationTimeEvent = new Date();
                             Intent speakIntent = new Intent(this, ReadOut.class);
                             speakIntent.putExtra(ReadOut.textToSpeak,"Exiting "+previousLocation +" Accuracy "+mLastLocation.getAccuracy() +
-                                    " calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE));
+                                    " calculated via "+intent.getStringExtra(GetLocationCordinatesService.LOCATION_CORDINATES_SOURCE)+ " speed "+mLastLocation.getSpeed());
 
                             speakIntent.putExtra(MainActivity.orignationActivityName,fileName);
                             startService(speakIntent);
                             sendSMSToAll("Exiting "+previousLocation+" "+locationLink);
+                        }
+
 
 
                     }
                 //}
 
             }
-            previousLocation = currentLocation;
+            if (changeOfLocation ){
+                previousLocation = currentLocation;
+            }
+
         }
     }
     private long markEntryToLocationInDB(String location){

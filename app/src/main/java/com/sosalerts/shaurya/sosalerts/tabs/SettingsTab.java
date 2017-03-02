@@ -136,10 +136,12 @@ public class SettingsTab extends Fragment {
             safeZoneBoundry.setSelection(6);
         }else if(safeZoneBoundrySettings == 2000){
             safeZoneBoundry.setSelection(7);
+        }else if(safeZoneBoundrySettings == 200){
+            safeZoneBoundry.setSelection(0);
         }else {
             for(int i=5; i<=10; i++){
                 if(i*100 == safeZoneBoundrySettings){
-                    safeZoneBoundry.setSelection(i-5);
+                    safeZoneBoundry.setSelection(i-5+1);
                     break;
                 }
             }

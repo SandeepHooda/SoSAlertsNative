@@ -28,8 +28,8 @@ android {
     }
     productFlavors {
         releaseConfig {
-            versionCode 12
-            versionName '12'
+            versionCode 13
+            versionName '13'
             minSdkVersion 23
             applicationId 'com.sosalerts.shaurya.sosalerts'
             signingConfig signingConfigs.relese_config

@@ -19,6 +19,7 @@
     </string-array>
 
     <string-array name="safe_zone_array">
+        <item>200</item>
         <item>500</item>
         <item>600</item>
         <item>700</item>
