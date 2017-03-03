@@ -80,7 +80,10 @@ public class ReadOut extends IntentService /*implements TextToSpeech.OnInitListe
             public void onInit(int status) {
                 //Log.e(fileName, "Text to speach  Status Read Out ##### $$$$$$$$$$$$$$$$$ "+status);
                 String utteranceId=this.hashCode() + "";
-                myTTS.speak(whatToSay, 1, null, utteranceId);
+                if (null != myTTS){
+                    myTTS.speak(whatToSay, 1, null, utteranceId);
+                }
+
             }
         });
 
