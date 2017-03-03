@@ -165,7 +165,8 @@ public class LocationTrackerIntentService extends IntentService {
                             sendSMSToAll("Entering "+currentLocation+" "+locationLink );
 
 
-                    }else if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
+                    }else if(!currentLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){ //case when directly reaches from home to infy :)
+                        //if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
 
                         if (mLastLocation.getSpeed() > 0 ){
                             int[] distanceArray = locationTrackerMap.get(currentLocation);
@@ -174,6 +175,7 @@ public class LocationTrackerIntentService extends IntentService {
                             }
                             if ((distanceArray[0] > distanceArray[1] ) &&( distanceArray[1] > distanceArray[2])){
                                 changeOfLocation = true;
+                                currentLocation = unknownLocation;  //to handle the case when directly reaches from home to infy :)
                                 //speakLocation = true;
                                 //Storage.storeinDB(Storage.mostRecentExitOrEnterTime,""+(new Date().getTime()),getApplicationContext());
                                 long averageTime  = markExitFromLocationInDB(previousLocation);
