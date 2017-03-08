@@ -149,7 +149,6 @@ public class LocationTrackerIntentService extends IntentService {
             boolean changeOfLocation = false;
             //speakLocation = false;
             if(previousLocation != null && Storage.isLocationTrackerOn(getApplicationContext())){// So that the when app starts for the first time after install we can ignore this code
-                //if(null == knownLocationTimeEvent || ((new Date().getTime() - knownLocationTimeEvent.getTime()) > 5*60*1000)){// No event for next five minute
                     if(unknownLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){
                         changeOfLocation = true;
                             //speakLocation = true;
@@ -165,15 +164,15 @@ public class LocationTrackerIntentService extends IntentService {
                             sendSMSToAll("Entering "+currentLocation+" "+locationLink );
 
 
-                    }else if(!currentLocation.equals(previousLocation) && !unknownLocation.equals(currentLocation)){ //case when directly reaches from home to infy :)
+                    }else if(!currentLocation.equals(previousLocation) ){ //case when directly reaches from home to infy :)
                         //if(!unknownLocation.equals(previousLocation) && unknownLocation.equals(currentLocation)){
 
                         if (mLastLocation.getSpeed() > 0 ){
-                            int[] distanceArray = locationTrackerMap.get(currentLocation);
+                            int[] distanceArray = locationTrackerMap.get(previousLocation);
                             if (null == distanceArray){
                                 distanceArray = new int[3];
                             }
-                            if ((distanceArray[0] > distanceArray[1] ) &&( distanceArray[1] > distanceArray[2])){
+                            if (distanceArray[0] > 2000 ||((distanceArray[0] > distanceArray[1] ) &&( distanceArray[1] > distanceArray[2]))){
                                 changeOfLocation = true;
                                 currentLocation = unknownLocation;  //to handle the case when directly reaches from home to infy :)
                                 //speakLocation = true;
