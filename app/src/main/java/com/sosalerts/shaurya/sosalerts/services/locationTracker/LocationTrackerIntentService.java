@@ -136,6 +136,9 @@ public class LocationTrackerIntentService extends IntentService {
             Log.e(fileName, "currentLocation  "+currentLocation +" previousLocation "+previousLocation);
             if ( Boolean.parseBoolean(Storage.getFromDB(Storage.speakLocation, this))) {
                 int[] distanceArray = locationTrackerMap.get(currentLocation);
+                if(unknownLocation.equals(currentLocation)){
+                    distanceArray = locationTrackerMap.get(previousLocation);
+                }
                 if (null == distanceArray){
                     distanceArray = new int[3];
                 }
